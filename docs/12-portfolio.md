@@ -12,7 +12,7 @@
 
 **Versión de un párrafo (para el README):**
 
-> Sonda turns a playlist, album, or track link from any supported music platform into one clean table with the same columns everywhere. Every row carries its source, when it was fetched, and its declared license, if any. It runs on your machine with your own API keys, through official APIs only. The same core powers a local web UI, a CLI, and a local MCP server.
+> Scrapeer turns a playlist, album, or track link from any supported music platform into one clean table with the same columns everywhere. Every row carries its source, when it was fetched, and its declared license, if any. It runs on your machine with your own API keys, through official APIs only. The same core powers a local web UI, a CLI, and a local MCP server.
 
 **Lo que NO es el relato:**
 
@@ -71,7 +71,7 @@ Todo número publicado sale de un run real.
 ## Estructura del README del repo
 
 ```markdown
-# Sonda
+# Scrapeer
 
 <una línea>
 
@@ -80,8 +80,8 @@ Todo número publicado sale de un run real.
 ## Quick start
 
 1. npx ...
-2. sonda resolve <url>
-3. sonda export --run <runId> --allow-derivatives
+2. scrapeer resolve <url>
+3. scrapeer export --run <runId> --allow-derivatives
 
 ## What it does / doesn't
 

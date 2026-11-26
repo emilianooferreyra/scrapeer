@@ -5,8 +5,8 @@
 ## Uso
 
 ```bash
-sonda resolve https://www.deezer.com/playlist/908622995   # crea un run
-sonda export --run <runId> --min-duration 60 --out ./ds
+scrapeer resolve https://www.deezer.com/playlist/908622995   # crea un run
+scrapeer export --run <runId> --min-duration 60 --out ./ds
 ```
 
 `export` **no recolecta**: filtra y proyecta lo que un run ya guardó.

@@ -2,7 +2,7 @@
 
 **Última actualización:** 2026-11-26
 **Fase actual:** 1 — rebanada vertical con Deezer (paso 0 hecho)
-**Nombre:** provisional; los docs usan `sonda`
+**Nombre:** `scrapeer`
 
 ---
 
@@ -35,12 +35,12 @@ Link de playlist, álbum o track de **Deezer** o **YouTube** → tabla con las m
 
 ## Pendientes que no son código
 
-| Pendiente                                                | Necesario para           |
-| -------------------------------------------------------- | ------------------------ |
-| Leer términos de la API de Deezer                        | Cerrar Fase 3            |
-| Leer términos de los servicios de API de YouTube         | Cerrar Fase 3            |
-| Crear una API key de YouTube para probar                 | Fase 3                   |
-| **Nombre definitivo** (reemplaza el placeholder `sonda`) | Antes de publicar en npm |
+| Pendiente                                        | Necesario para    |
+| ------------------------------------------------ | ----------------- |
+| Leer términos de la API de Deezer                | Cerrar Fase 3     |
+| Leer términos de los servicios de API de YouTube | Cerrar Fase 3     |
+| Verificar que `scrapeer` esté libre en npm       | Antes de publicar |
+| Crear una API key de YouTube para probar         | Fase 3            |
 
 ## Bloqueos
 

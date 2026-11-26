@@ -1,5 +1,5 @@
 {
-  "name": "sonda",
+  "name": "scrapeer",
   "version": "0.0.0",
   "private": true,
   "description": "Paste a link from any music platform, get one clean table with provenance.",

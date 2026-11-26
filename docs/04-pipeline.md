@@ -124,8 +124,8 @@ Si y solo si los escalones 1–4 fallaron.
 
 ## Configuración
 
-- Archivo `sonda.config.ts` (o `.json`) validado con **zod** al arrancar. Config inválida = falla al inicio, no a mitad del run.
-- Claves del usuario **solo por env** (`SONDA_YOUTUBE_API_KEY`), redactadas en logs, provenance y fixtures.
+- Archivo `scrapeer.config.ts` (o `.json`) validado con **zod** al arrancar. Config inválida = falla al inicio, no a mitad del run.
+- Claves del usuario **solo por env** (`SCRAPEER_YOUTUBE_API_KEY`), redactadas en logs, provenance y fixtures.
 - `.env.example` completo, `.env` en `.gitignore`.
 - **Nunca** credenciales en el repo (el original las pide hardcodeadas en cada script: error a no repetir).
 

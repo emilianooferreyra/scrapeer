@@ -1,1 +1,1 @@
-export const TOOL_NAME = "sonda";
+export const TOOL_NAME = "scrapeer";

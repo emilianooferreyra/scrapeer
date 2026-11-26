@@ -23,13 +23,13 @@ Si un adaptador tiene lógica de negocio, está mal ubicado.
 ## CLI
 
 ```
-sonda resolve <url>              # URL → track o colección (--format json|csv)
-sonda search <query> --provider  # búsqueda normalizada
-sonda export --run <runId>       # dataset (jsonl + csv), ver 06-dataset.md
-sonda providers                  # lista + capabilities
-sonda report <runId>             # reporte del run
-sonda doctor                     # diagnóstico: config, claves, red, ledger
-sonda ui                         # UI web local en 127.0.0.1
+scrapeer resolve <url>              # URL → track o colección (--format json|csv)
+scrapeer search <query> --provider  # búsqueda normalizada
+scrapeer export --run <runId>       # dataset (jsonl + csv), ver 06-dataset.md
+scrapeer providers                  # lista + capabilities
+scrapeer report <runId>             # reporte del run
+scrapeer doctor                     # diagnóstico: config, claves, red, ledger
+scrapeer ui                         # UI web local en 127.0.0.1
 ```
 
 Flags transversales: `--json`, `--dry-run`, `--verbose`, `--max-requests`, `--max-bytes`.
@@ -98,9 +98,9 @@ Flags transversales: `--json`, `--dry-run`, `--verbose`, `--max-requests`, `--ma
 // claude_desktop_config.json
 {
   "mcpServers": {
-    "sonda": {
+    "scrapeer": {
       "command": "npx",
-      "args": ["-y", "@sonda/mcp"],
+      "args": ["-y", "@scrapeer/mcp"],
     },
   },
 }
@@ -114,7 +114,7 @@ Ese es el post. No "mirá mi scraper": **"tu agente lee cualquier playlist y te 
 
 ## UI
 
-> **v1.0, local.** `sonda ui` levanta un servidor en `127.0.0.1` y abre el navegador. Es el demo principal del proyecto (ADR-021).
+> **v1.0, local.** `scrapeer ui` levanta un servidor en `127.0.0.1` y abre el navegador. Es el demo principal del proyecto (ADR-021).
 
 ### Decisión: _form-first_, no chat
 

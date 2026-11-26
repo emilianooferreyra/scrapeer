@@ -16,7 +16,7 @@ Los tres "casos de uso" del repo original dejan de ser scripts y pasan a ser **p
 | `speech`      | `durationSec ≥ 300`, excluye música                         | `language?`        | Voz larga, podcasts, charlas  |
 
 ```bash
-sonda export --preset music-gen --provider internet-archive --out ./ds
+scrapeer export --preset music-gen --provider internet-archive --out ./ds
 ```
 
 **Regla:** un preset **filtra y proyecta**, nunca recolecta distinto. Así el core sigue siendo uno.

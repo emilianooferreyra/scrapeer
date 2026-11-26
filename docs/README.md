@@ -1,6 +1,6 @@
-# Sonda — de cualquier link musical a una tabla
+# Scrapeer — de cualquier link musical a una tabla
 
-> **Nombre provisional.** `Sonda` es un placeholder; el repo real puede llamarse distinto. Todo lo que sigue asume que el nombre es reemplazable sin tocar el diseño.
+> **Nombre:** `scrapeer`. Binario y paquete de npm con el mismo nombre.
 
 Este directorio contiene el **diseño completo** de una herramienta open source (MIT) de metadata musical multi-plataforma. Nace del tutorial de Decodo ([video](https://www.youtube.com/watch?v=BMgrLd-U4k0), [repo](https://github.com/Decodo/soundcloud-scraper)) que pasa una playlist de SoundCloud a CSV, y lo rehace bien y para varias plataformas.
 

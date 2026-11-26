@@ -315,7 +315,7 @@ Formato: `Estado · Contexto · Decisión · Consecuencias`.
 - El producto es **"pegás un link de cualquier plataforma y obtenés las mismas columnas, con procedencia"**.
 - v1.0 = **Deezer + YouTube**, **UI web local + CLI + MCP local**, **CSV + JSONL**.
 - Deezer va primero porque su API pública no exige clave: es el quick start y la Fase 1.
-- La UI corre en la máquina del usuario (`sonda ui`, solo `127.0.0.1`). No hay hosting, cuentas ni auth: ADR-018 sigue vigente.
+- La UI corre en la máquina del usuario (`scrapeer ui`, solo `127.0.0.1`). No hay hosting, cuentas ni auth: ADR-018 sigue vigente.
 - Audius, Internet Archive y Jamendo dejan de ser v1.0 y pasan a la lista de providers posteriores.
 
 **Consecuencias.**
@@ -369,7 +369,7 @@ Formato: `Estado · Contexto · Decisión · Consecuencias`.
 | Build           | **tsdown**                     | Sucesor recomendado de tsup                                                                                                                                |
 | Tests           | **Vitest**                     | Rápido, compatible con fixtures                                                                                                                            |
 | Lint y formato  | **Oxlint + Oxfmt**             | Oxlint tiene reglas con información de tipos estables, basadas en el compilador de TypeScript: hacen cumplir "sin `any`" y "sin `as` sobre datos externos" |
-| Paquetes        | **pnpm**, **un solo paquete**  | Un binario `sonda` con subcomandos (`ui`, `mcp`); las capas se separan por carpetas y reglas de importación                                                |
+| Paquetes        | **pnpm**, **un solo paquete**  | Un binario `scrapeer` con subcomandos (`ui`, `mcp`); las capas se separan por carpetas y reglas de importación                                             |
 
 **Descartados.**
 
@@ -390,6 +390,6 @@ Formato: `Estado · Contexto · Decisión · Consecuencias`.
 
 **Consecuencias.**
 
-- `npx sonda` no compila nada: cero dependencias nativas.
+- `npx scrapeer` no compila nada: cero dependencias nativas.
 - Requiere Node ≥ 24.15 (versión mínima con `node:sqlite` en _release candidate_); se desarrolla y se prueba en CI con Node 26. La CLI verifica la versión al arrancar y la informa en `doctor`.
 - `node:sqlite` todavía no es _stable_: si cambia su API, el impacto queda acotado al módulo del ledger.

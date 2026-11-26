@@ -1,6 +1,6 @@
-# AGENTS.md — Sonda
+# AGENTS.md — Scrapeer
 
-> `sonda` es un nombre provisional. El nombre definitivo está pendiente (ver `STATUS.md`).
+> Nombre del proyecto, del binario y del paquete: `scrapeer`.
 
 ## Qué es esto
 
@@ -35,7 +35,7 @@ Todo está en `docs/`. **Leé solo lo que la tarea necesita**, no todos los arch
 
 Node 26 LTS (mínimo 24.15) · TypeScript estricto, ESM · zod · `fetch` nativo · Hono (UI local) · `node:sqlite` · pino · commander · tsdown · Vitest · Oxlint + Oxfmt · pnpm, **un solo paquete**.
 
-- Sin dependencias nativas: `npx sonda` no puede compilar nada.
+- Sin dependencias nativas: `npx scrapeer` no puede compilar nada.
 - La UI (Fase 2) y el SDK de MCP (Fase 5) se deciden en su fase.
 
 ## Reglas innegociables

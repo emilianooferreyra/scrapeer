@@ -33,14 +33,14 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 
 - [ ] Capa de servicio extraída (segundo adaptador, ADR-007)
 - [ ] Adaptador HTTP local, solo `127.0.0.1`
-- [ ] `sonda ui`: input, tabla, export CSV y JSON ([`07-superficies.md`](07-superficies.md#ui))
+- [ ] `scrapeer ui`: input, tabla, export CSV y JSON ([`07-superficies.md`](07-superficies.md#ui))
 - [ ] Errores visibles en la UI con el mismo texto que la CLI
 
 **Done:** alguien ajeno pega un link de Deezer y descarga el CSV en menos de 60 s. Se graba el GIF.
 
 ## Fase 3 — YouTube y congelamiento
 
-- [ ] Clave del usuario por env (`SONDA_YOUTUBE_API_KEY`), redactada en logs, provenance y fixtures
+- [ ] Clave del usuario por env (`SCRAPEER_YOUTUBE_API_KEY`), redactada en logs, provenance y fixtures
 - [ ] `resolve` de video y playlist, con paginación por cursor
 - [ ] Budget de cuota diaria: el run se corta limpio con `budget_exceeded`
 - [ ] Métricas separadas: vistas en `plays`, `rank` de Deezer en `popularity`

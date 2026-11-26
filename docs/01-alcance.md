@@ -117,4 +117,4 @@ Un provider cumple además el checklist de [`05-providers.md`](05-providers.md).
 
 ## v1.0 está lista cuando
 
-Alguien ajeno al proyecto clona el repo, corre `sonda ui`, pega el link de una playlist de Deezer **sin credenciales** y descarga un CSV con los tracks en orden. Con su propia clave, hace lo mismo con una playlist de YouTube y obtiene **las mismas columnas**.
+Alguien ajeno al proyecto clona el repo, corre `scrapeer ui`, pega el link de una playlist de Deezer **sin credenciales** y descarga un CSV con los tracks en orden. Con su propia clave, hace lo mismo con una playlist de YouTube y obtiene **las mismas columnas**.

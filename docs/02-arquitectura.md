@@ -148,7 +148,7 @@ Orden **fijo**. Solo se baja un escalón si el anterior falla, y cada caída se 
 ## Layout del repo
 
 ```
-sonda/
+scrapeer/
 ├─ src/
 │  ├─ core/        # schema, Result, errores, rate limit, ledger, transport, servicio
 │  ├─ providers/   # deezer · youtube
@@ -158,7 +158,7 @@ sonda/
 │     └─ mcp/      # stdio (Fase 5)
 ├─ fixtures/       # respuestas grabadas, por provider
 ├─ docs/
-└─ package.json    # un solo paquete, binario `sonda`
+└─ package.json    # un solo paquete, binario `scrapeer`
 ```
 
 **Reglas de importación:** `core` no importa de `providers` ni de `adapters`; `providers` solo importa de `core`; los adaptadores solo usan la capa de servicio. Oxlint lo verifica.
