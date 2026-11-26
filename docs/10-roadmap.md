@@ -20,7 +20,7 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 
 **Objetivo:** atravesar todas las capas con lo mínimo y sin credenciales.
 
-- [ ] `Track`, `Collection`, `License`, `Result` y `ScrapeError`
+- [x] `Track`, `Collection`, `License`, `Result` y `ScrapeError`
 - [ ] Transport HTTP: allowlist por salto, timeout, rate limit y jitter
 - [ ] Deezer `resolve` de track y playlist, con fixtures
 - [ ] CLI `resolve <url>` → JSON

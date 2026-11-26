@@ -1,0 +1,35 @@
+import { describe, expect, it } from "vitest";
+import { isRetryable, ScrapeError, SCRAPE_ERROR_KINDS } from "./errors.js";
+
+const RETRYABLE = new Set(["rate_limited", "upstream_error", "timeout", "network_error"]);
+
+describe("ScrapeError", () => {
+  it.each(SCRAPE_ERROR_KINDS.map((kind) => [kind, RETRYABLE.has(kind)] as const))(
+    "%s is retryable: %s",
+    (kind, expected) => {
+      expect(isRetryable(kind)).toBe(expected);
+    },
+  );
+
+  it("lists the 15 documented kinds", () => {
+    expect(SCRAPE_ERROR_KINDS).toHaveLength(15);
+  });
+
+  it("carries an actionable message and optional context", () => {
+    const error = {
+      kind: "rate_limited",
+      message: "rate_limited: provider=deezer retryAfter=12s",
+      provider: "deezer",
+      retryAfterSec: 12,
+    };
+    expect(ScrapeError.safeParse(error).success).toBe(true);
+  });
+
+  it("rejects an unknown kind", () => {
+    expect(ScrapeError.safeParse({ kind: "oops", message: "x" }).success).toBe(false);
+  });
+
+  it("rejects an empty message", () => {
+    expect(ScrapeError.safeParse({ kind: "not_found", message: "" }).success).toBe(false);
+  });
+});

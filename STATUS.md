@@ -1,7 +1,7 @@
 # STATUS
 
 **Última actualización:** 2026-11-26
-**Fase actual:** 1 — rebanada vertical con Deezer (paso 0 hecho)
+**Fase actual:** 1 — rebanada vertical con Deezer (pasos 0 y 1 hechos)
 **Nombre:** `scrapeer`
 
 ---
@@ -25,7 +25,7 @@ Link de playlist, álbum o track de **Deezer** o **YouTube** → tabla con las m
 **Fase 1 — rebanada vertical con Deezer** ([`docs/10-roadmap.md`](docs/10-roadmap.md)):
 
 0. ~~Esqueleto: `package.json`, `tsconfig` estricto, Oxlint, Oxfmt, Vitest, tsdown, `.gitignore`~~ ✅
-1. `Track`, `Collection`, `License`, `Result` y `ScrapeError` con zod
+1. ~~`Track`, `Collection`, `License`, `Result` y `ScrapeError` con zod~~ ✅ (`src/core/schema/`, `src/core/result.ts`, `src/core/errors.ts`)
 2. Transport HTTP mínimo: allowlist por salto, timeout, rate limit y jitter
 3. Deezer `resolve` de track y playlist, con fixtures
 4. CLI `resolve <url>` → JSON y CSV ordenado

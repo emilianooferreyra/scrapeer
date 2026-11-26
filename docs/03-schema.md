@@ -6,6 +6,8 @@
 
 ## `Track` canónico
 
+> Implementación: [`src/core/schema/`](../src/core/schema/). Los tipos se derivan con `z.infer`; los objetos son estrictos: un campo que no está en esta tabla se rechaza.
+
 Todos los providers normalizan a esta forma. Nada específico de un sitio sobrevive a la frontera.
 
 | Campo           | Tipo                                                    | Obligatorio | Notas                                                                                                                                              |
@@ -66,14 +68,14 @@ type Resource =
   | { kind: "collection"; collection: Collection; page: Page<Track> };
 ```
 
-| `Collection`                                      | Tipo                              | Notas                                                             |
-| ------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------- |
-| `schemaVersion`, `provider`, `id`, `url`, `title` | —                                 | Igual que en `Track`                                              |
-| `type`                                            | `'album' \| 'playlist' \| 'item'` | `item` = Internet Archive                                         |
-| `artist`                                          | `string \| null`                  |                                                                   |
-| `license`                                         | `License \| null`                 | Un track la hereda solo si la fuente la declara para todo el item |
-| `trackCount`                                      | `number \| null`                  |                                                                   |
-| `provenance`                                      | `Provenance`                      |                                                                   |
+| `Collection`                                      | Tipo                    | Notas                                                             |
+| ------------------------------------------------- | ----------------------- | ----------------------------------------------------------------- |
+| `schemaVersion`, `provider`, `id`, `url`, `title` | —                       | Igual que en `Track`                                              |
+| `type`                                            | `'album' \| 'playlist'` | Internet Archive sumará `item` cuando entre (ADR-021)             |
+| `artist`                                          | `string \| null`        |                                                                   |
+| `license`                                         | `License \| null`       | Un track la hereda solo si la fuente la declara para todo el item |
+| `trackCount`                                      | `number \| null`        |                                                                   |
+| `provenance`                                      | `Provenance`            |                                                                   |
 
 Una colección sin audio es válida: `page.items = []`.
 
