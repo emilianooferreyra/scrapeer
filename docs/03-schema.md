@@ -10,27 +10,27 @@
 
 Todos los providers normalizan a esta forma. Nada específico de un sitio sobrevive a la frontera.
 
-| Campo           | Tipo                                                    | Obligatorio | Notas                                                                                                                                              |
-| --------------- | ------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `schemaVersion` | `number`                                                | ✅          | Empezar en `1`. Solo sube con cambios incompatibles.                                                                                               |
-| `provider`      | `ProviderId`                                            | ✅          | `"deezer"`, `"youtube"`                                                                                                                            |
-| `id`            | `string`                                                | ✅          | ID **en el provider**, estable.                                                                                                                    |
-| `url`           | `string` (URL canónica)                                 | ✅          | Sin parámetros de tracking. Normalizada.                                                                                                           |
-| `artist`        | `string \| null`                                        | —           | Como lo publica la fuente. `null` si no existe. En YouTube es el canal.                                                                            |
-| `title`         | `string`                                                | ✅          | Ídem.                                                                                                                                              |
-| `durationSec`   | `number \| null`                                        | —           | Entero. `null` si se desconoce (nunca `0`).                                                                                                        |
-| `plays`         | `number \| null`                                        | —           | Reproducciones o vistas contadas por la fuente (YouTube: `viewCount`). `null` si no lo expone (Deezer, Spotify).                                   |
-| `popularity`    | `{ value: number; scale: string } \| null`              | —           | Índice propio de la plataforma (`deezer-rank`, `spotify-popularity`). **No es comparable entre plataformas** ni se convierte en `plays` (ADR-022). |
-| `isrc`          | `string \| null`                                        | —           | Código ISRC si la fuente lo expone. Permite cruzar el mismo tema entre plataformas.                                                                |
-| `availability`  | `'available' \| 'geo_blocked' \| 'unavailable' \| null` | —           | Estado del track **dentro de una colección**: un track bloqueado no corta la playlist, queda marcado.                                              |
-| `publishedAt`   | `string \| null`                                        | —           | ISO 8601 UTC (`2026-03-14T00:00:00Z`).                                                                                                             |
-| `license`       | `License \| null`                                       | —           | Ver abajo. `null` = la fuente no la declara.                                                                                                       |
-| `collection`    | `{ id, position } \| null`                              | —           | Colección de origen y **posición en ella**, empezando en 1. El CSV se ordena por este campo.                                                       |
-| `tags`          | `string[]`                                              | ✅          | `[]` si no hay. Normalizados a minúsculas.                                                                                                         |
-| `artworkUrl`    | `string \| null`                                        | —           |                                                                                                                                                    |
-| `downloadable`  | `boolean`                                               | ✅          | Default `false`. **Detectado, no descargado.**                                                                                                     |
-| `description`   | `string \| null`                                        | —           | Truncado a 2000 caracteres.                                                                                                                        |
-| `provenance`    | `Provenance`                                            | ✅          | Ver abajo.                                                                                                                                         |
+| Campo           | Tipo                                                    | Obligatorio | Notas                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schemaVersion` | `number`                                                | ✅          | Empezar en `1`. Solo sube con cambios incompatibles.                                                                                                                       |
+| `provider`      | `ProviderId`                                            | ✅          | `"musicbrainz"`, `"youtube"`                                                                                                                                               |
+| `id`            | `string`                                                | ✅          | ID **en el provider**, estable.                                                                                                                                            |
+| `url`           | `string` (URL canónica)                                 | ✅          | Sin parámetros de tracking. Normalizada.                                                                                                                                   |
+| `artist`        | `string \| null`                                        | —           | Como lo publica la fuente. `null` si no existe. En YouTube es el canal.                                                                                                    |
+| `title`         | `string`                                                | ✅          | Ídem.                                                                                                                                                                      |
+| `durationSec`   | `number \| null`                                        | —           | Entero. `null` si se desconoce (nunca `0`).                                                                                                                                |
+| `plays`         | `number \| null`                                        | —           | Reproducciones o vistas contadas por la fuente (YouTube: `viewCount`). `null` si no lo expone (MusicBrainz, Spotify).                                                      |
+| `popularity`    | `{ value: number; scale: string } \| null`              | —           | Índice propio de la plataforma (`spotify-popularity`, por ejemplo). **No es comparable entre plataformas** ni se convierte en `plays` (ADR-022).                           |
+| `isrcs`         | `string[]`                                              | ✅          | Todos los ISRC que informa la fuente, sin repetir; `[]` si no informa ninguno. Una grabación puede tener varios (ADR-024). Permite cruzar el mismo tema entre plataformas. |
+| `availability`  | `'available' \| 'geo_blocked' \| 'unavailable' \| null` | —           | Estado del track **dentro de una colección**: un track bloqueado no corta la playlist, queda marcado.                                                                      |
+| `publishedAt`   | `string \| null`                                        | —           | ISO 8601 UTC (`2026-03-14T00:00:00Z`).                                                                                                                                     |
+| `license`       | `License \| null`                                       | —           | Ver abajo. `null` = la fuente no la declara.                                                                                                                               |
+| `collection`    | `{ id, position } \| null`                              | —           | Colección de origen y **posición en ella**, empezando en 1. El CSV se ordena por este campo.                                                                               |
+| `tags`          | `string[]`                                              | ✅          | `[]` si no hay. Normalizados a minúsculas.                                                                                                                                 |
+| `artworkUrl`    | `string \| null`                                        | —           |                                                                                                                                                                            |
+| `downloadable`  | `boolean`                                               | ✅          | Default `false`. **Detectado, no descargado.**                                                                                                                             |
+| `description`   | `string \| null`                                        | —           | Truncado a 2000 caracteres.                                                                                                                                                |
+| `provenance`    | `Provenance`                                            | ✅          | Ver abajo.                                                                                                                                                                 |
 
 ### `License` (ADR-014)
 
@@ -107,31 +107,31 @@ Evitan pasar un `ProviderId` donde va un `TrackId`. Suena académico hasta el pr
 
 ### Ejemplo
 
-Un track de una playlist de Deezer. Los valores son ilustrativos.
+Un track de un álbum de MusicBrainz. Los valores son ilustrativos.
 
 ```json
 {
   "schemaVersion": 1,
-  "provider": "deezer",
-  "id": "3135556",
-  "url": "https://www.deezer.com/track/3135556",
+  "provider": "musicbrainz",
+  "id": "b1e9a1c4-0000-4000-8000-000000000001",
+  "url": "https://musicbrainz.org/recording/b1e9a1c4-0000-4000-8000-000000000001",
   "artist": "Artist Name",
   "title": "Track Title",
-  "durationSec": 214,
+  "durationSec": 68,
   "plays": null,
-  "popularity": { "value": 812345, "scale": "deezer-rank" },
-  "isrc": "GBDUW0000059",
+  "popularity": null,
+  "isrcs": ["GBN9Y1100088", "GBAYE0601690"],
   "availability": "available",
-  "publishedAt": "2026-02-11T00:00:00Z",
+  "publishedAt": "1973-03-24T00:00:00Z",
   "license": null,
-  "collection": { "id": "908622995", "position": 3 },
+  "collection": { "id": "f5093c06-0000-4000-8000-000000000002", "position": 1 },
   "tags": [],
-  "artworkUrl": "https://.../cover.jpg",
+  "artworkUrl": null,
   "downloadable": false,
   "description": null,
   "provenance": {
-    "sourceUrl": "https://www.deezer.com/playlist/908622995",
-    "requestUrl": "https://api.deezer.com/playlist/908622995/tracks",
+    "sourceUrl": "https://musicbrainz.org/release/f5093c06-0000-4000-8000-000000000002",
+    "requestUrl": "https://musicbrainz.org/ws/2/release/f5093c06-0000-4000-8000-000000000002?inc=recordings+isrcs+artist-credits&fmt=json",
     "fetchedAt": "2026-11-26T18:02:11Z",
     "transport": "api",
     "rawHash": "sha256:9f2c…",
@@ -206,7 +206,7 @@ Un archivo por export, junto a los datos:
   "filters": { "allowCommercial": true, "allowDerivatives": true, "minDurationSec": 60 },
   "count": 312,
   "rejected": { "too_short": 12, "duplicate": 4 },
-  "providers": { "deezer": 200, "youtube": 112 },
+  "providers": { "musicbrainz": 200, "youtube": 112 },
   "licenses": { "null": 290, "by": 22 },
   "outputs": { "jsonl": "tracks.jsonl", "csv": "tracks.csv" },
   "toolVersion": "0.1.0"

@@ -32,7 +32,10 @@ export const Track = z.strictObject({
   /** Plays or views counted by the source. */
   plays: z.number().int().nonnegative().nullable(),
   popularity: Popularity.nullable(),
-  isrc: Isrc.nullable(),
+  /** Every ISRC the source reports; a recording can have several. Empty when none is known. */
+  isrcs: z
+    .array(Isrc)
+    .refine((codes) => new Set(codes).size === codes.length, { message: "ISRCs are unique" }),
   availability: Availability.nullable(),
   publishedAt: UtcTimestamp.nullable(),
   license: License.nullable(),

@@ -24,7 +24,7 @@ function validTrack(): Record<string, unknown> {
     durationSec: 214,
     plays: null,
     popularity: { value: 812345, scale: "deezer-rank" },
-    isrc: "GBDUW0000059",
+    isrcs: ["GBDUW0000059"],
     availability: "available",
     publishedAt: "2026-02-11T00:00:00Z",
     license: null,
@@ -82,7 +82,6 @@ describe("Track", () => {
       durationSec: null,
       plays: null,
       popularity: null,
-      isrc: null,
       availability: null,
       publishedAt: null,
       collection: null,
@@ -118,9 +117,26 @@ describe("Track", () => {
   it.each(["GB-DUW-00-00059", "gbduw0000059", "GBDUW00000"])(
     "rejects the malformed ISRC %s",
     (isrc) => {
-      expect(issuePaths(withField("isrc", isrc))).toEqual(["isrc"]);
+      expect(issuePaths(withField("isrcs", [isrc]))).toEqual(["isrcs.0"]);
     },
   );
+
+  it("keeps every ISRC the source reports for one recording", () => {
+    const isrcs = ["GBN9Y1100088", "GBAYE0601690", "GBAYE7300001"];
+    expect(Track.safeParse(withField("isrcs", isrcs)).success).toBe(true);
+  });
+
+  it("accepts an empty isrcs list when the source reports none", () => {
+    expect(Track.safeParse(withField("isrcs", [])).success).toBe(true);
+  });
+
+  it("rejects duplicate ISRCs", () => {
+    expect(issuePaths(withField("isrcs", ["GBDUW0000059", "GBDUW0000059"]))).toEqual(["isrcs"]);
+  });
+
+  it("rejects isrcs: null, an unknown list is empty", () => {
+    expect(issuePaths(withField("isrcs", null))).toEqual(["isrcs"]);
+  });
 
   it("rejects an unknown availability", () => {
     expect(issuePaths(withField("availability", "maybe"))).toEqual(["availability"]);
