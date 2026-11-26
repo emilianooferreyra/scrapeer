@@ -5,7 +5,7 @@
 ## Uso
 
 ```bash
-scrapeer resolve https://www.deezer.com/playlist/908622995   # crea un run
+scrapeer resolve https://musicbrainz.org/release/f5093c06-0000-4000-8000-000000000002   # crea un run
 scrapeer export --run <runId> --min-duration 60 --out ./ds
 ```
 

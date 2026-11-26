@@ -34,7 +34,7 @@ scrapeer ui                         # UI web local en 127.0.0.1
 
 Flags transversales: `--json`, `--dry-run`, `--verbose`, `--max-requests`, `--max-bytes`.
 
-**`--dry-run`** valida la entrada y muestra el plan **sin tocar la red**. El quick start sin credenciales usa Deezer.
+**`--dry-run`** valida la entrada y muestra el plan **sin tocar la red**. El quick start sin credenciales usa MusicBrainz.
 
 `resolve` también registra un run, para poder exportarlo.
 

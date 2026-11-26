@@ -24,14 +24,14 @@
 
 ## Los posts de v1.0
 
-| Fase | Hook                                                                    |
-| ---- | ----------------------------------------------------------------------- |
-| 1    | "De un link de playlist a un CSV, sin navegador ni proxies"             |
-| 2    | "Pegás un link y ves la tabla" (GIF)                                    |
-| 3    | "Deezer y YouTube con las mismas columnas: lo que no se puede comparar" |
-| 4    | "Maté el proceso a mitad del run y no perdí nada"                       |
-| 5    | "Mi agente pasa cualquier playlist a CSV"                               |
-| 6    | "v1.0, y por qué no hay TikTok ni Instagram"                            |
+| Fase | Hook                                                                         |
+| ---- | ---------------------------------------------------------------------------- |
+| 1    | "De un link de playlist a un CSV, sin navegador ni proxies"                  |
+| 2    | "Pegás un link y ves la tabla" (GIF)                                         |
+| 3    | "MusicBrainz y YouTube con las mismas columnas: lo que no se puede comparar" |
+| 4    | "Maté el proceso a mitad del run y no perdí nada"                            |
+| 5    | "Mi agente pasa cualquier playlist a CSV"                                    |
+| 6    | "v1.0, y por qué no hay TikTok ni Instagram"                                 |
 
 **El orden importa:** cada post se apoya en el anterior. No hay reveal único; hay progreso visible.
 
@@ -112,7 +112,7 @@ Todo número publicado sale de un run real.
 (link a docs/)
 ```
 
-**El "Quick start" sin credenciales** es crítico: cualquiera debe poder verlo funcionar en 60 segundos con Deezer.
+**El "Quick start" sin credenciales** es crítico: cualquiera debe poder verlo funcionar en 60 segundos con MusicBrainz.
 
 ---
 

@@ -20,7 +20,7 @@
 
 ```
 fixtures/
-├─ deezer/            # track, playlist ordenada, track no disponible, búsqueda
+├─ musicbrainz/       # recording, release ordenado, varios ISRC, fecha parcial, 503
 ├─ youtube/           # video, playlist paginada, video privado, cuota agotada, clave inválida
 ├─ licenses.csv       # valor crudo → License esperada
 └─ urls.csv           # tabla de URLs para match()
@@ -37,7 +37,7 @@ Cada fixture se graba **una vez** con un script (`pnpm fixtures:grab <url>`), se
 | Tipo            | Qué verifica                       | Ejemplo                                                   |
 | --------------- | ---------------------------------- | --------------------------------------------------------- |
 | **Unit**        | Lógica pura                        | rate limiter con reloj falso; `match()` con tabla de URLs |
-| **Contract**    | Provider: fixture → `Track` exacto | `deezer/playlist.json` → colección y sus tracks en orden  |
+| **Contract**    | Provider: fixture → `Track` exacto | `musicbrainz/release.json` → álbum y sus tracks en orden  |
 | **Golden**      | JSON normalizado no cambió         | snapshot del `Track` completo                             |
 | **Integration** | Core + provider + ledger, sin red  | run completo sobre fixtures                               |
 
@@ -48,8 +48,8 @@ Cada fixture se graba **una vez** con un script (`pnpm fixtures:grab <url>`), se
 ## Contract test — forma
 
 ```ts
-it("resolves a Deezer playlist as an ordered collection", async () => {
-  const body = readFixture("deezer/playlist-two-tracks.json");
+it("resolves a MusicBrainz release as an ordered album", async () => {
+  const body = readFixture("musicbrainz/release-two-tracks.json");
   const result = await provider.resolve(url, ctxWith(body));
 
   expect(result.ok).toBe(true);
@@ -58,10 +58,10 @@ it("resolves a Deezer playlist as an ordered collection", async () => {
   }
 
   const { collection, page } = result.value;
-  expect(collection.type).toBe("playlist");
+  expect(collection.type).toBe("album");
   expect(page.items).toHaveLength(2);
   expect(page.items.map((t) => t.collection?.position)).toEqual([1, 2]);
-  expect(page.items[0]?.plays).toBeNull(); // Deezer does not expose plays
+  expect(page.items[0]?.plays).toBeNull(); // MusicBrainz does not expose plays
 });
 ```
 
@@ -78,7 +78,7 @@ Tan importantes como el happy path:
 - [ ] Campo obligatorio faltante → `validation_failed`
 - [ ] `429` → `rate_limited` con `retryAfter`
 - [ ] Timeout → `timeout` tras los reintentos
-- [ ] `robots.txt` disallow → `robots_disallowed`
+- [ ] `robots.txt` disallow en una página → `robots_disallowed`; en una API oficial declarada → se registra y sigue (ADR-024)
 - [ ] Redirect a un host o IP no permitidos → `host_not_allowed`
 - [ ] Circuito abierto → `upstream_down`
 - [ ] Fuente con `export: false` → `unsupported`

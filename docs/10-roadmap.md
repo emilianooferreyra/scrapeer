@@ -6,7 +6,7 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 
 | Fase      | Resultado visible                                      | Sesiones  |
 | --------- | ------------------------------------------------------ | --------- |
-| 1         | Link de playlist de Deezer → CSV, por CLI              | 2–3       |
+| 1         | Link de álbum de MusicBrainz → CSV, por CLI            | 2–3       |
 | 2         | La UI local: pegás el link, ves la tabla, exportás     | 2–3       |
 | 3         | YouTube con la clave del usuario; el schema se congela | 3–4       |
 | 4         | Runs que se cortan y se retoman; export con filtros    | 3–5       |
@@ -16,17 +16,17 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 
 ---
 
-## Fase 1 — Rebanada vertical con Deezer
+## Fase 1 — Rebanada vertical con MusicBrainz
 
 **Objetivo:** atravesar todas las capas con lo mínimo y sin credenciales.
 
 - [x] `Track`, `Collection`, `License`, `Result` y `ScrapeError`
-- [ ] Transport HTTP: allowlist por salto, timeout, rate limit y jitter
-- [ ] Deezer `resolve` de track y playlist, con fixtures
+- [ ] Transport HTTP: allowlist por salto, timeout, rate limit y jitter, `robots.txt` antes del primer request según el tipo de acceso (ADR-024)
+- [ ] MusicBrainz `resolve` de recording y release, con fixtures
 - [ ] CLI `resolve <url>` → JSON
-- [ ] `resolve --format csv` con el orden de la playlist (el `export` con filtros llega en Fase 4)
+- [ ] `resolve --format csv` con el orden del álbum (el `export` con filtros llega en Fase 4)
 
-**Done:** el link real de una playlist de Deezer produce un CSV ordenado; `pnpm typecheck && pnpm test` en verde.
+**Done:** el link real de un álbum de MusicBrainz produce un CSV ordenado; `pnpm typecheck && pnpm test` en verde.
 **No incluye:** UI, ledger, búsqueda ni otro provider.
 
 ## Fase 2 — UI local
@@ -36,15 +36,15 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 - [ ] `scrapeer ui`: input, tabla, export CSV y JSON ([`07-superficies.md`](07-superficies.md#ui))
 - [ ] Errores visibles en la UI con el mismo texto que la CLI
 
-**Done:** alguien ajeno pega un link de Deezer y descarga el CSV en menos de 60 s. Se graba el GIF.
+**Done:** alguien ajeno pega un link de MusicBrainz y descarga el CSV en menos de 60 s. Se graba el GIF.
 
 ## Fase 3 — YouTube y congelamiento
 
 - [ ] Clave del usuario por env (`SCRAPEER_YOUTUBE_API_KEY`), redactada en logs, provenance y fixtures
 - [ ] `resolve` de video y playlist, con paginación por cursor
 - [ ] Budget de cuota diaria: el run se corta limpio con `budget_exceeded`
-- [ ] Métricas separadas: vistas en `plays`, `rank` de Deezer en `popularity`
-- [ ] Puertas de términos de Deezer y YouTube ([`05-providers.md`](05-providers.md))
+- [ ] Métricas separadas: vistas en `plays`, nunca en `popularity`
+- [ ] Vencimiento a 30 días de los datos de YouTube en el manifest ([`05-providers.md`](05-providers.md))
 - [ ] `schemaVersion: 1` congelado
 
 **Done:** agregar YouTube no requirió ningún caso especial en `core/` ni en la UI.

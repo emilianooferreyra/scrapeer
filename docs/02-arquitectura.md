@@ -1,15 +1,15 @@
 # 02 — Arquitectura
 
-> **v1.0 (ADR-021):** transport `http`, providers por API oficial (Deezer, YouTube), UI local, CLI y MCP local. REST pública, HTML y navegador son v2; aparecen acá porque el diseño los admite.
+> **v1.0 (ADR-021):** transport `http`, providers por API oficial (MusicBrainz, YouTube; ADR-024), UI local, CLI y MCP local. REST pública, HTML y navegador son v2; aparecen acá porque el diseño los admite.
 
 ## La decisión central
 
 **Dos ejes ortogonales.** No hay herencia por sitio.
 
-- **`Provider`** = _qué_ plataforma (Deezer, YouTube, SoundCloud…)
+- **`Provider`** = _qué_ plataforma (MusicBrainz, YouTube, SoundCloud…)
 - **`Transport`** = _cómo_ se obtienen los bytes (HTTP, JSON API, browser)
 
-Un provider **compone** transports. Así Deezer = `provider` + `HttpTransport` + schema de su API. En v2, una fuente HTML agregaría un parser y otra podría sumar un fallback, sin tocar el core.
+Un provider **compone** transports. Así MusicBrainz = `provider` + `HttpTransport` + schema de su API. En v2, una fuente HTML agregaría un parser y otra podría sumar un fallback, sin tocar el core.
 
 Agregar un sitio no toca el core. Agregar un transport beneficia a todos los providers.
 
@@ -151,7 +151,7 @@ Orden **fijo**. Solo se baja un escalón si el anterior falla, y cada caída se 
 scrapeer/
 ├─ src/
 │  ├─ core/        # schema, Result, errores, rate limit, ledger, transport, servicio
-│  ├─ providers/   # deezer · youtube
+│  ├─ providers/   # musicbrainz · youtube
 │  └─ adapters/
 │     ├─ cli/      # commander
 │     ├─ ui/       # Hono local + estáticos (Fase 2)

@@ -6,7 +6,7 @@
 
 Una herramienta open source (MIT): pegás un link de **cualquier plataforma musical** y obtenés una tabla limpia, con **las mismas columnas siempre** y la **procedencia** de cada dato, exportable a CSV. Corre en la máquina del usuario, con sus claves, solo por APIs oficiales.
 
-**v1.0 (ADR-021):** Deezer + YouTube · UI web local + CLI + MCP local · CSV + JSONL. REST pública, UI hosteada, HTML, navegador, audio y LLM son **v2**: no construirlos. TikTok e Instagram están fuera de alcance (ADR-022).
+**v1.0 (ADR-021, ADR-024):** MusicBrainz + YouTube · UI web local + CLI + MCP local · CSV + JSONL. REST pública, UI hosteada, HTML, navegador, audio y LLM son **v2**: no construirlos. TikTok e Instagram están fuera de alcance (ADR-022).
 
 > No es un producto de AI. Es un producto **que la AI puede usar**.
 
@@ -48,6 +48,7 @@ Node 26 LTS (mínimo 24.15) · TypeScript estricto, ESM · zod · `fetch` nativo
 - Capas: `core` no importa de `providers` ni de `adapters`; `providers` solo importa de `core`; los adaptadores solo usan la capa de servicio.
 - Errores esperados → `Result<T, ScrapeError>`. Excepciones solo para bugs.
 - Toda frontera valida: input de usuario, respuesta de red, config, argv.
+- `robots.txt` según el acceso (ADR-024): en páginas web se respeta siempre; en una API oficial declarada con enlace a su documentación, se registra y mandan sus términos.
 - **API oficial primero; navegador = último recurso.** API → API interna → oEmbed → HTML → Playwright. Nunca evasión (ADR-017, ADR-022).
 - **Nunca `delay()` fijo** para esperar. Esperas por condición.
 - Rate limit por host + jitter **antes** de cualquier request.

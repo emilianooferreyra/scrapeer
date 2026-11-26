@@ -72,9 +72,16 @@ Motivo: insistir contra un sitio caído es abuso, no persistencia. Y en un run l
 
 ## `robots.txt`
 
-- Se consulta **una vez por dominio**, cacheado en el ledger.
-- Se respeta siempre. En v1.0 no hay flag para desactivarlo.
-- Si `Disallow` cubre la ruta → `robots_disallowed`, sin bypass.
+Lo que manda depende del tipo de acceso ([ADR-024](00-decisiones.md#adr-024--musicbrainz-y-youtube-en-v10-robotstxt-según-el-tipo-de-acceso)):
+
+| Acceso                                | Regla                                                                             |
+| ------------------------------------- | --------------------------------------------------------------------------------- |
+| API oficial documentada (escalón 1)   | Mandan los términos y límites de la API. El `robots.txt` se registra, no bloquea  |
+| Páginas web (oEmbed, HTML, navegador) | Se respeta siempre: si `Disallow` cubre la ruta → `robots_disallowed`, sin bypass |
+
+- Se consulta **una vez por host**, **antes del primer request**, y se cachea en el ledger.
+- Un host es API oficial solo si el provider lo declara, con su prefijo de ruta y el enlace a la documentación de la plataforma. La puerta de términos lo verifica.
+- En v1.0 no hay flag para desactivarlo.
 - Ausente (4xx) → permitido. Error del servidor (5xx) o red → no se continúa con ese host.
 
 Esto no es solo ética: es la primera línea de defensa en cualquier discusión pública sobre el proyecto.

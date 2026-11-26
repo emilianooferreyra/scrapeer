@@ -1,11 +1,11 @@
 # 05 — Providers
 
-> **v1.0 son dos: Deezer y YouTube.** Cada provider usa la vía oficial de su plataforma (ADR-022) y entra cuando pasa la puerta de términos **y** el checklist.
+> **v1.0 son dos: MusicBrainz y YouTube (ADR-024).** Cada provider usa la vía oficial de su plataforma (ADR-022) y entra cuando pasa la puerta de términos **y** el checklist.
 
-| #   | Provider    | Qué prueba                                               | Credencial          | Export              |
-| --- | ----------- | -------------------------------------------------------- | ------------------- | ------------------- |
-| 1   | **Deezer**  | Camino completo sin clave, playlists ordenadas, ISRC     | No para lecturas    | ⏳ Puerta pendiente |
-| 2   | **YouTube** | Clave del usuario, cuota diaria, paginación, licencia CC | API key del usuario | ⏳ Puerta pendiente |
+| #   | Provider        | Qué prueba                                                | Credencial          | Export                       |
+| --- | --------------- | --------------------------------------------------------- | ------------------- | ---------------------------- |
+| 1   | **MusicBrainz** | Camino completo sin clave, álbumes ordenados, varios ISRC | No                  | ✅ Datos principales (CC0)   |
+| 2   | **YouTube**     | Clave del usuario, cuota diaria, paginación, licencia CC  | API key del usuario | ✅ Con vencimiento a 30 días |
 
 ---
 
@@ -13,22 +13,23 @@
 
 Estado del acceso verificado el 2026-11-26. Cambia seguido: cada provider lo reconfirma en su puerta.
 
-| Plataforma | Dificultad | Vía oficial                                                     | Qué exige al usuario                            | Plan             |
-| ---------- | ---------- | --------------------------------------------------------------- | ----------------------------------------------- | ---------------- |
-| Deezer     | 🟢 Fácil   | API pública de lectura                                          | Nada; uso comercial requiere acuerdo con Deezer | v1.0             |
-| YouTube    | 🟢 Fácil   | Data API v3: 10.000 unidades/día; `playlistItems.list` cuesta 1 | API key de Google Cloud                         | v1.0             |
-| SoundCloud | 🟡 Media   | API oficial con claves self-serve desde 2026-05                 | Cuenta **Artist Pro**                           | Después de v1.0  |
-| Tidal      | 🟡 Media   | API JSON:API con credenciales de cliente                        | App en el portal de desarrolladores             | Después de v1.0  |
-| Spotify    | 🟠 Molesta | Web API; el modo desarrollo exige Premium y limita usuarios     | App propia + Premium; **no expone plays**       | Después de v1.0  |
-| Instagram  | 🔴 Fuera   | Solo cuentas profesionales, con revisión de Meta                | Cuenta de empresa + App Review                  | Fuera de alcance |
-| TikTok     | 🔴 Fuera   | API de investigación solo para académicos sin fines de lucro    | No aplica                                       | Fuera de alcance |
+| Plataforma  | Dificultad | Vía oficial                                                     | Qué exige al usuario                                                | Plan             |
+| ----------- | ---------- | --------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------- |
+| MusicBrainz | 🟢 Fácil   | API `/ws/2`: 1 request/s, User-Agent con contacto               | Nada                                                                | v1.0             |
+| Deezer      | 🔴 Fuera   | API pública de lectura                                          | Sus términos prohíben exportar a una base de datos y el uso para IA | Fuera (ADR-024)  |
+| YouTube     | 🟢 Fácil   | Data API v3: 10.000 unidades/día; `playlistItems.list` cuesta 1 | API key de Google Cloud                                             | v1.0             |
+| SoundCloud  | 🟡 Media   | API oficial con claves self-serve desde 2026-05                 | Cuenta **Artist Pro**                                               | Después de v1.0  |
+| Tidal       | 🟡 Media   | API JSON:API con credenciales de cliente                        | App en el portal de desarrolladores                                 | Después de v1.0  |
+| Spotify     | 🟠 Molesta | Web API; el modo desarrollo exige Premium y limita usuarios     | App propia + Premium; **no expone plays**                           | Después de v1.0  |
+| Instagram   | 🔴 Fuera   | Solo cuentas profesionales, con revisión de Meta                | Cuenta de empresa + App Review                                      | Fuera de alcance |
+| TikTok      | 🔴 Fuera   | API de investigación solo para académicos sin fines de lucro    | No aplica                                                           | Fuera de alcance |
 
 ## Puerta de términos (ADR-020)
 
-Antes de **publicar** un provider, su página de docs registra:
+Antes de **escribir** un provider, su página de docs registra (ADR-024):
 
 - [ ] Enlace y fecha de los términos leídos en la **fuente primaria**
-- [ ] Resultado de `robots.txt` para los hosts y rutas usados
+- [ ] Resultado de `robots.txt` para los hosts y rutas usados, y qué hosts son API oficial documentada (ADR-024)
 - [ ] Uso permitido: personal, no comercial, comercial
 - [ ] Caching y redistribución de metadata: ¿se permite el export?
 - [ ] Atribución requerida y límites de uso
@@ -38,22 +39,27 @@ Un provider con `export: false` permite `resolve` y `search`, no guarda tracks e
 
 ### Estado al 2026-11-26
 
-| Fuente  | Verificado                                                                                                          | Falta                                                           |
-| ------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Deezer  | La API pública permite lecturas sin clave; la FAQ para desarrolladores pide un acuerdo comercial para uso comercial | Términos de la API sobre export de metadata                     |
-| YouTube | Cuota por defecto y costo por método en la documentación oficial                                                    | Términos de los servicios de API sobre guardar y exportar datos |
+| Fuente                      | Verificado                                                                                                                                                | Falta                                |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| MusicBrainz                 | Datos principales CC0; 1 request/s por IP; User-Agent `App/versión ( contacto )`; `robots.txt` bloquea `/ws`, pero la API está documentada para programas | Nada para la Fase 1                  |
+| YouTube                     | Uso comercial permitido; los datos guardados se borran o se refrescan a los 30 días; las credenciales no van en el código                                 | Atribución exigida por la plataforma |
+| Deezer, Spotify, SoundCloud | Sus términos prohíben exportar metadata                                                                                                                   | Fuera mientras no cambien            |
 
 ---
 
 ## Notas por provider
 
-### Deezer
+### MusicBrainz
 
-- Una playlist o un álbum resuelve a **colección**; el orden se conserva en `collection.position`.
-- No expone plays: `plays` es `null`. El `rank` de Deezer va a `popularity`, nunca a `plays`.
-- Expone `isrc`: es la clave para cruzar el mismo tema entre plataformas más adelante.
-- No declara licencia por track: `license` es `null`.
-- Tracks no disponibles en la región del usuario → `availability: 'geo_blocked'`.
+- Un `release` (álbum) resuelve a **colección** de tipo `album`; el orden se conserva en `collection.position`. Un `recording` resuelve a **track**. No hay playlists.
+- **1 request/s por host** como máximo; arriba de eso responde 503 → `rate_limited`.
+- El User-Agent lleva un contacto: `scrapeer/<versión> ( <url del repo> )`.
+- La duración viene en milisegundos: `durationSec` se redondea al segundo; sin duración → `null`.
+- Devuelve **varios ISRC** por grabación: van todos a `isrcs`.
+- No expone plays ni popularidad: `plays` y `popularity` son `null`.
+- La fecha del release puede ser parcial (`1973`, `1973-03`): solo una fecha completa llena `publishedAt`; si no, `null`.
+- `license` es `null`: el CC0 cubre la metadata, no la obra.
+- Tags y ratings son datos suplementarios CC BY-NC-SA: `tags` queda en `[]` en v1.0.
 
 ### YouTube
 
@@ -69,8 +75,15 @@ Un provider con `export: false` permite `resolve` y `search`, no guarda tracks e
 
 ```ts
 export const provider: Provider = {
-  id: ProviderId.parse("deezer"),
-  hosts: ["deezer.com", "www.deezer.com", "api.deezer.com", "link.deezer.com"],
+  id: ProviderId.parse("musicbrainz"),
+  hosts: ["musicbrainz.org"],
+  officialApi: [
+    {
+      host: "musicbrainz.org",
+      pathPrefix: "/ws/2/",
+      docsUrl: "https://musicbrainz.org/doc/MusicBrainz_API",
+    },
+  ],
   capabilities: new Set(["track", "collection", "search"]),
   policy: { export: false, reviewedAt: null, termsUrl: null },
   match(url) {
@@ -85,13 +98,14 @@ export const provider: Provider = {
 };
 ```
 
-| Requisito                    | Detalle                                   |
-| ---------------------------- | ----------------------------------------- |
-| `match` puro                 | Sin red. Se prueba con una tabla de URLs. |
-| Sin red propia               | Usa un `Transport`, nunca `fetch`.        |
-| `hosts` exactos              | Alimentan la allowlist del transport.     |
-| `policy` cerrada por defecto | `export: false` hasta pasar la puerta.    |
-| Salida validada              | zod antes de devolver.                    |
+| Requisito                    | Detalle                                                                                      |
+| ---------------------------- | -------------------------------------------------------------------------------------------- |
+| `match` puro                 | Sin red. Se prueba con una tabla de URLs.                                                    |
+| Sin red propia               | Usa un `Transport`, nunca `fetch`.                                                           |
+| `hosts` exactos              | Alimentan la allowlist del transport.                                                        |
+| `officialApi` con enlace     | Hosts y rutas de la API documentada: ahí el `robots.txt` se registra y no bloquea (ADR-024). |
+| `policy` cerrada por defecto | `export: false` hasta pasar la puerta.                                                       |
+| Salida validada              | zod antes de devolver.                                                                       |
 
 > Durante el desarrollo, el autor puede exportar localmente una fuente pendiente con `--allow-unreviewed`; queda registrado en el manifest. No aplica a una fuente ya revisada con `export: false`.
 

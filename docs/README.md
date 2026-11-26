@@ -10,7 +10,7 @@ Este directorio contiene el **diseño completo** de una herramienta open source 
 
 **Qué NO es:** un producto de AI ni un servicio. Es una herramienta que corre en tu máquina, con tus claves, y **que la AI puede usar** vía MCP.
 
-**Estado:** alcance v1.0 = Deezer + YouTube, UI local + CLI + MCP (ADR-021), schema abierto hasta cerrar la Fase 3, implementación no iniciada. Este directorio es la fuente de verdad hasta que exista código.
+**Estado:** alcance v1.0 = MusicBrainz + YouTube, UI local + CLI + MCP (ADR-021, ADR-024), schema abierto hasta cerrar la Fase 3, implementación no iniciada. Este directorio es la fuente de verdad hasta que exista código.
 
 ---
 
@@ -63,6 +63,6 @@ Si vas a implementar: leé en orden. Si vas a revisar: `00-decisiones.md` + `03-
 
 1. `git init` en la raíz del proyecto.
 2. Crear un `README.md` de proyecto en inglés al llegar a la Fase 6.
-3. Empezar por la **Fase 1** del [`10-roadmap.md`](10-roadmap.md) — rebanada vertical con Deezer.
+3. Empezar por la **Fase 1** del [`10-roadmap.md`](10-roadmap.md) — rebanada vertical con MusicBrainz.
 
 > Este directorio no modifica nada de `ampli-backend` / `ampli-web`. Es independiente a propósito: el proyecto es standalone, y el schema se diseña para poder integrarse a Amplified más adelante sin acoplamiento.

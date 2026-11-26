@@ -24,7 +24,7 @@
 | ----------------------------------------------------- | -------------------------------------------------------------- |
 | Metadata + links por defecto                          | Sin redistribución de obras                                    |
 | Audio fuera de v1.0                                   | No se descarga ni redistribuye                                 |
-| `robots.txt` siempre respetado                        | Cumple el estándar                                             |
+| `robots.txt` respetado en toda página web (ADR-024)   | Cumple el estándar; en APIs oficiales mandan sus términos      |
 | Puerta de términos por provider                       | Export cerrado hasta revisarla                                 |
 | User-Agent identificable, sin evasión                 | Coherente con lo que se declara                                |
 | Rate limit + circuit breaker                          | No es abusivo por diseño                                       |
@@ -54,7 +54,7 @@
 ## Responsible use
 
 - Uses each platform's official API, with your own keys.
-- Always respects robots.txt and identifies itself.
+- Respects robots.txt for every web page; official APIs are used under their own documented terms and rate limits. Always identifies itself.
 - Per-host rate limiting with jitter; no hammering.
 - Metadata only; does not download audio.
 - Export is disabled for sources whose terms do not clearly allow it.
@@ -74,12 +74,12 @@ Esto, lejos de ser un disclaimer, es un **feature** y desactiva la mayoría de l
 
 ## Riesgos abiertos
 
-| Riesgo                                                                      | Estado                                                           |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| YouTube: qué permiten los términos de la API sobre guardar y exportar datos | Puerta en Fase 3                                                 |
-| Deezer: export de metadata sin acuerdo comercial                            | Puerta en Fase 3; la herramienta es no comercial                 |
-| Proveedores posteriores (SoundCloud, Tidal, Spotify, Jamendo…)              | Puerta antes de cada uno                                         |
-| La licencia declarada puede ser incorrecta                                  | Se conserva `raw` y se aclara que no es verificación de derechos |
+| Riesgo                                                         | Estado                                                           |
+| -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Deezer, Spotify y SoundCloud prohíben exportar metadata        | Fuera de alcance mientras no cambien (ADR-024)                   |
+| YouTube: datos guardados vencen a los 30 días                  | El manifest lleva la fecha de vencimiento                        |
+| Proveedores posteriores (SoundCloud, Tidal, Spotify, Jamendo…) | Puerta antes de cada uno                                         |
+| La licencia declarada puede ser incorrecta                     | Se conserva `raw` y se aclara que no es verificación de derechos |
 
 ---
 
@@ -114,7 +114,7 @@ Esto, lejos de ser un disclaimer, es un **feature** y desactiva la mayoría de l
 
 Respuesta corta y honesta, en este orden:
 
-1. **Qué hace:** metadata pública, no audio, respeta robots, rate-limited.
+1. **Qué hace:** metadata pública por APIs oficiales, no audio, respeta robots en páginas web, rate-limited.
 2. **Qué no hace:** no bypassa logins, no redistribuye obras, no clona voces.
 3. **Qué deja al usuario:** la responsabilidad de cumplir los términos de cada fuente.
 4. **Qué es:** una herramienta de investigación y trabajo con datos propios.
@@ -125,7 +125,7 @@ No defenderse con "todo el mundo lo hace". Ese argumento pierde siempre.
 
 ## Checklist
 
-- [ ] `robots.txt` siempre respetado
+- [ ] `robots.txt` respetado en páginas web; API oficial declarada con enlace a su documentación
 - [ ] Sin descarga de audio
 - [ ] Sin bypass de login/paywall/DRM
 - [ ] Licencia + provenance por track

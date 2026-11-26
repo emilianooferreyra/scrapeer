@@ -4,31 +4,32 @@ Decisiones tomadas durante el diseño. **Inmutables:** si algo cambia, se agrega
 
 Formato: `Estado · Contexto · Decisión · Consecuencias`.
 
-| ID      | Decisión                                                   | Estado                                               |
-| ------- | ---------------------------------------------------------- | ---------------------------------------------------- |
-| ADR-001 | Metadata + links primero; audio después y opt-in           | Aceptada (audio: v2, ver ADR-013)                    |
-| ADR-002 | TypeScript estricto; reescribir, no migrar                 | Aceptada (build y herramientas: ver ADR-023)         |
-| ADR-003 | Abstracción en dos ejes: `Provider × Transport`            | Aceptada (ampliada por ADR-015)                      |
-| ADR-004 | Escalera de degradación; navegador como último recurso     | Aceptada (v1.0 solo usa el escalón API, ver ADR-013) |
-| ADR-005 | `Result<T, E>` en las fronteras, no excepciones            | Aceptada                                             |
-| ADR-006 | `zod` como fuente única de tipos en datos externos         | Aceptada                                             |
-| ADR-007 | Un core, tres superficies: CLI / REST / MCP                | Parcialmente superada por ADR-013 y ADR-018          |
-| ADR-008 | Rate limiting y jitter como módulo de primera clase        | Aceptada (justificación superada por ADR-017)        |
-| ADR-009 | Repo standalone; schema compatible con Amplified           | Aceptada                                             |
-| ADR-010 | LLM solo en los bordes; el agente va afuera                | Aceptada                                             |
-| ADR-011 | UI _form-first_; chat como azúcar opcional                 | Aceptada (UI local en v1.0, ver ADR-021; chat: v2)   |
-| ADR-012 | Fixtures y tests son precondición del feature de LLM       | Aceptada (feature de LLM: v2)                        |
-| ADR-013 | Recorte de v1.0: 3 providers por API, CLI + MCP, JSONL/CSV | Superada parcialmente por ADR-021                    |
-| ADR-014 | Licencia estructurada en lugar de un enum                  | Aceptada                                             |
-| ADR-015 | `resolve` devuelve `Resource` (track o colección)          | Aceptada                                             |
-| ADR-016 | Dos hashes en provenance: evidencia y contenido            | Aceptada                                             |
-| ADR-017 | Identificarse ante el servidor; nada de evasión            | Aceptada                                             |
-| ADR-018 | Allowlist de hosts en el transport; MCP local en v1.0      | Aceptada                                             |
-| ADR-019 | Fase 1 es una rebanada vertical                            | Aceptada                                             |
-| ADR-020 | Revisión de términos como requisito de cada provider       | Aceptada (ampliada por ADR-022)                      |
-| ADR-021 | El producto: un link de cualquier plataforma → una tabla   | Aceptada                                             |
-| ADR-022 | Acceso solo por vías oficiales, con las claves del usuario | Aceptada                                             |
-| ADR-023 | Stack técnico de v1.0                                      | Aceptada                                             |
+| ID      | Decisión                                                    | Estado                                               |
+| ------- | ----------------------------------------------------------- | ---------------------------------------------------- |
+| ADR-001 | Metadata + links primero; audio después y opt-in            | Aceptada (audio: v2, ver ADR-013)                    |
+| ADR-002 | TypeScript estricto; reescribir, no migrar                  | Aceptada (build y herramientas: ver ADR-023)         |
+| ADR-003 | Abstracción en dos ejes: `Provider × Transport`             | Aceptada (ampliada por ADR-015)                      |
+| ADR-004 | Escalera de degradación; navegador como último recurso      | Aceptada (v1.0 solo usa el escalón API, ver ADR-013) |
+| ADR-005 | `Result<T, E>` en las fronteras, no excepciones             | Aceptada                                             |
+| ADR-006 | `zod` como fuente única de tipos en datos externos          | Aceptada                                             |
+| ADR-007 | Un core, tres superficies: CLI / REST / MCP                 | Parcialmente superada por ADR-013 y ADR-018          |
+| ADR-008 | Rate limiting y jitter como módulo de primera clase         | Aceptada (justificación: ADR-017; robots: ADR-024)   |
+| ADR-009 | Repo standalone; schema compatible con Amplified            | Aceptada                                             |
+| ADR-010 | LLM solo en los bordes; el agente va afuera                 | Aceptada                                             |
+| ADR-011 | UI _form-first_; chat como azúcar opcional                  | Aceptada (UI local en v1.0, ver ADR-021; chat: v2)   |
+| ADR-012 | Fixtures y tests son precondición del feature de LLM        | Aceptada (feature de LLM: v2)                        |
+| ADR-013 | Recorte de v1.0: 3 providers por API, CLI + MCP, JSONL/CSV  | Superada parcialmente por ADR-021                    |
+| ADR-014 | Licencia estructurada en lugar de un enum                   | Aceptada                                             |
+| ADR-015 | `resolve` devuelve `Resource` (track o colección)           | Aceptada                                             |
+| ADR-016 | Dos hashes en provenance: evidencia y contenido             | Aceptada                                             |
+| ADR-017 | Identificarse ante el servidor; nada de evasión             | Aceptada                                             |
+| ADR-018 | Allowlist de hosts en el transport; MCP local en v1.0       | Aceptada                                             |
+| ADR-019 | Fase 1 es una rebanada vertical                             | Aceptada                                             |
+| ADR-020 | Revisión de términos como requisito de cada provider        | Aceptada (ampliada por ADR-022 y ADR-024)            |
+| ADR-021 | El producto: un link de cualquier plataforma → una tabla    | Aceptada (providers: ver ADR-024)                    |
+| ADR-022 | Acceso solo por vías oficiales, con las claves del usuario  | Aceptada                                             |
+| ADR-023 | Stack técnico de v1.0                                       | Aceptada                                             |
+| ADR-024 | MusicBrainz y YouTube; `robots.txt` según el tipo de acceso | Aceptada                                             |
 
 ---
 
@@ -393,3 +394,49 @@ Formato: `Estado · Contexto · Decisión · Consecuencias`.
 - `npx scrapeer` no compila nada: cero dependencias nativas.
 - Requiere Node ≥ 24.15 (versión mínima con `node:sqlite` en _release candidate_); se desarrolla y se prueba en CI con Node 26. La CLI verifica la versión al arrancar y la informa en `doctor`.
 - `node:sqlite` todavía no es _stable_: si cambia su API, el impacto queda acotado al módulo del ledger.
+
+---
+
+## ADR-024 — MusicBrainz y YouTube en v1.0; `robots.txt` según el tipo de acceso
+
+**Fecha.** 2026-11-26. **Supera** la elección de providers de ADR-021, **precisa** la regla de `robots.txt` de ADR-008 y **amplía** la puerta de términos de ADR-020.
+
+**Contexto.** Antes de escribir el provider de Deezer se revisaron `robots.txt` y términos de las plataformas pedidas (2026-11-26, fuentes primarias):
+
+| Plataforma  | `robots.txt` del host de la API | Términos                                                                                                                                    |
+| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deezer      | `Disallow: /*`                  | Solo uso no comercial; prohíbe extraer contenido a una base de datos "o permitir a sus usuarios hacerlo" (§III.4) y el uso para IA (§III.8) |
+| Spotify     | `Disallow: /`                   | Prohíbe bases de datos más allá de lo estrictamente necesario (§IV.3.1.1), la metadata como producto aparte y el uso para ML                |
+| SoundCloud  | Sin dato (respondió 429)        | Prohíbe guardar en forma persistente (§05) y entrenar IA (§03)                                                                              |
+| Tidal       | 404                             | Sin leer: la página solo carga con JavaScript                                                                                               |
+| YouTube     | 404                             | Permite uso comercial; los datos guardados se borran o se refrescan a los 30 días; las credenciales no van en código abierto                |
+| MusicBrainz | `Disallow: /ws`                 | API documentada para programas: 1 request/s por IP, User-Agent con contacto; datos principales **CC0**                                      |
+
+Deezer, Spotify y SoundCloud prohíben justo lo que hace la herramienta: exportar metadata a una tabla. MusicBrainz muestra además que el `robots.txt` de un host de API apunta a los buscadores: bloquea `/ws`, la misma ruta que documenta como su API pública.
+
+**Decisión.**
+
+1. **Providers de v1.0: MusicBrainz y YouTube.**
+   - **MusicBrainz** es la Fase 1 y el quick start sin credenciales: `release` (álbum, tracks en orden) y `recording` (track). No tiene playlists.
+   - **YouTube** es la Fase 3, con la clave del usuario, y congela el schema.
+   - **Deezer sale de v1.0** por sus términos. Spotify y SoundCloud quedan fuera mientras sus términos prohíban exportar.
+2. **`robots.txt` según el tipo de acceso:**
+
+   | Acceso                                    | Lo que manda                                                                                             |
+   | ----------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+   | **API oficial documentada** (escalón 1)   | Los términos y límites de la API: cuota, rate limit, User-Agent. El `robots.txt` se registra, no bloquea |
+   | **Páginas web** (oEmbed, HTML, navegador) | El `robots.txt`, siempre: `Disallow` → `robots_disallowed`, sin bypass                                   |
+
+   Un host cuenta como API oficial solo si el provider declara, para ese host y prefijo de ruta, el enlace a la documentación de la plataforma que lo publica para programas. Lo verifica la puerta de términos.
+
+3. **La puerta de términos (ADR-020) se lee antes de escribir el provider**, no antes de publicarlo: si los términos prohíben exportar, el provider no se construye.
+4. **`isrc` pasa a `isrcs: string[]`**: MusicBrainz devuelve varios ISRC por grabación (seis en el primer track de _The Dark Side of the Moon_). Elegir uno sería inventar.
+
+**Consecuencias.**
+
+- El quick start usa un link de álbum de MusicBrainz en lugar de una playlist de Deezer.
+- MusicBrainz exige 1 request/s y un contacto en el User-Agent: el rate limiter por host y el User-Agent de ADR-017 se prueban desde la Fase 1.
+- Solo se exportan los datos principales de MusicBrainz (CC0). Los datos suplementarios, como tags y ratings, son CC BY-NC-SA: quedan afuera en v1.0.
+- Los exports de YouTube llevan fecha de vencimiento a 30 días en el manifest.
+- El transport sabe qué hosts son API oficial; la consulta de `robots.txt` antes del primer request sigue en el transport para todos los hosts.
+- ADR-021 sigue vigente en todo lo demás: producto, superficies y formatos.
