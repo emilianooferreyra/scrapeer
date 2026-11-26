@@ -87,6 +87,7 @@ Un provider, además, cumple el checklist de `docs/05-providers.md`.
 
 - **Una fase del roadmap a la vez.** No adelantar fases.
 - Antes de escribir código: leer la sección de `docs/` que corresponde.
-- Después de cambiar código: `pnpm typecheck && pnpm lint && pnpm test`.
+- Después de cambiar código: `pnpm check` (typecheck + lint con tipos + formato + tests).
+- Oxlint hace cumplir las reglas de capas, `any` y `as`: si una regla molesta, se discute en un ADR, no se desactiva en línea.
 - Commits con Conventional Commits.
 - Al cerrar un bloque de trabajo: **actualizar `STATUS.md`**.

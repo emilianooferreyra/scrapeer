@@ -1,7 +1,7 @@
 # STATUS
 
 **Última actualización:** 2026-11-26
-**Fase actual:** 1 — rebanada vertical con Deezer (sin empezar)
+**Fase actual:** 1 — rebanada vertical con Deezer (paso 0 hecho)
 **Nombre:** provisional; los docs usan `sonda`
 
 ---
@@ -18,17 +18,18 @@ Link de playlist, álbum o track de **Deezer** o **YouTube** → tabla con las m
 - [x] Stack técnico: ADR-023
 - [x] Acceso de cada plataforma verificado el 2026-11-26 ([`docs/05-providers.md`](docs/05-providers.md#mapa-de-plataformas))
 - [x] `git init -b main`
+- [x] Esqueleto: Node 26, TypeScript 7.0.2, Oxlint 1.95 con reglas de tipos, Oxfmt, Vitest 5, tsdown; reglas de capas verificadas con archivos de prueba
 
 ## Próximo
 
 **Fase 1 — rebanada vertical con Deezer** ([`docs/10-roadmap.md`](docs/10-roadmap.md)):
 
-0. Esqueleto: `package.json`, `tsconfig` estricto, Oxlint, Oxfmt, Vitest, tsdown, `.gitignore`
+0. ~~Esqueleto: `package.json`, `tsconfig` estricto, Oxlint, Oxfmt, Vitest, tsdown, `.gitignore`~~ ✅
 1. `Track`, `Collection`, `License`, `Result` y `ScrapeError` con zod
 2. Transport HTTP mínimo: allowlist por salto, timeout, rate limit y jitter
 3. Deezer `resolve` de track y playlist, con fixtures
 4. CLI `resolve <url>` → JSON y CSV ordenado
-5. `pnpm typecheck && pnpm lint && pnpm test` en verde
+5. `pnpm check` en verde
 
 **Criterio de éxito:** un CSV ordenado generado desde el link real de una playlist de Deezer.
 
