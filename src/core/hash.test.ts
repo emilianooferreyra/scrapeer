@@ -15,6 +15,11 @@ describe("hash", () => {
     );
   });
 
+  it("hashes values with toJSON, such as dates, by their JSON form", () => {
+    expect(canonicalJson({ at: new Date(0) })).toBe('{"at":"1970-01-01T00:00:00.000Z"}');
+    expect(contentHash({ at: new Date(1) }, [])).not.toBe(contentHash({ at: new Date(2) }, []));
+  });
+
   it("ignores key order and volatile fields in contentHash", () => {
     const volatile = ["provenance"];
     expect(contentHash({ a: 1, b: 2, provenance: "x" }, volatile)).toBe(

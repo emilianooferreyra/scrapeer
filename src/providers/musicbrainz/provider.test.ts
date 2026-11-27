@@ -268,8 +268,23 @@ describe("musicbrainz provider", () => {
     });
   });
 
-  it("reports validation_failed when the mapped record breaks the schema", async () => {
+  it("drops a malformed ISRC instead of failing the record", async () => {
     const body = fixture("recording-several-isrcs.json").replace('"USSM10307542"', '"not-an-isrc"');
+    const value = await resolveOk(`https://musicbrainz.org/recording/${ROLLING_STONE}`, body);
+    if (value.kind !== "track") throw new Error("expected a track");
+    expect(value.track.isrcs).toStrictEqual([
+      "USSM16500146",
+      "USSM16501022",
+      "USSM16501137",
+      "USSM19922509",
+    ]);
+  });
+
+  it("reports validation_failed when the mapped record breaks the schema", async () => {
+    const body = fixture("recording-several-isrcs.json").replace(
+      '"title":"Like a Rolling Stone"',
+      '"title":"   "',
+    );
     const { ctx } = ctxWith(answer(body));
     const result = await musicbrainz.resolve(
       new URL(`https://musicbrainz.org/recording/${ROLLING_STONE}`),
@@ -277,7 +292,55 @@ describe("musicbrainz provider", () => {
     );
     expect(result).toMatchObject({
       ok: false,
-      error: { kind: "validation_failed", provider: "musicbrainz" },
+      error: {
+        kind: "validation_failed",
+        provider: "musicbrainz",
+        message: "MusicBrainz recording did not map to a valid record at track.title.",
+      },
     });
+  });
+
+  it("counts the tracks it returns, not the count MusicBrainz declares", async () => {
+    const body = fixture("release-in-rainbows.json").replace(
+      '"track-count":10',
+      '"track-count":11',
+    );
+    const value = await resolveOk(`https://musicbrainz.org/release/${IN_RAINBOWS}`, body);
+    if (value.kind !== "collection") throw new Error("expected a collection");
+    expect(value.collection.trackCount).toBe(10);
+    expect(value.page.items).toHaveLength(10);
+  });
+
+  it("changes the album contentHash when a track changes, not when only the fetch time does", async () => {
+    const url = `https://musicbrainz.org/release/${IN_RAINBOWS}`;
+    const body = fixture("release-in-rainbows.json");
+    const first = await resolveOk(url, body);
+    const later = await resolveOk(url, body, "2026-12-01T00:00:00.000Z");
+    const renamed = await resolveOk(url, body.replace('"title":"Nude"', '"title":"Renamed"'));
+    if (
+      first.kind !== "collection" ||
+      later.kind !== "collection" ||
+      renamed.kind !== "collection"
+    ) {
+      throw new Error("expected collections");
+    }
+    const hash = (value: typeof first) =>
+      value.kind === "collection" ? value.collection.provenance.contentHash : null;
+    expect(hash(later)).toBe(hash(first));
+    expect(hash(renamed)).not.toBe(hash(first));
+  });
+
+  it("reports parse_failed for a body that is not valid UTF-8", async () => {
+    const bytes = new TextEncoder().encode(fixture("recording-several-isrcs.json"));
+    bytes[bytes.indexOf(0x4c)] = 0xff; // first "L" of "Like a Rolling Stone"
+    const { ctx } = ctxWith((url) => {
+      const reply = answer("")(url);
+      return reply.ok ? ok({ ...reply.value, body: bytes }) : reply;
+    });
+    const result = await musicbrainz.resolve(
+      new URL(`https://musicbrainz.org/recording/${ROLLING_STONE}`),
+      ctx,
+    );
+    expect(result).toMatchObject({ ok: false, error: { kind: "parse_failed" } });
   });
 });

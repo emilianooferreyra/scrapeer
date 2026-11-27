@@ -13,6 +13,9 @@ export function canonicalJson(value: unknown): string {
 function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
   if (value === null || typeof value !== "object") return value;
+  // Same as JSON.stringify: a Date (or anything with toJSON) is hashed by its JSON form.
+  const toJSON: unknown = Reflect.get(value, "toJSON");
+  if (typeof toJSON === "function") return sortKeys(Reflect.apply(toJSON, value, []));
   const sorted: Record<string, unknown> = {};
   for (const key of Object.keys(value).toSorted()) {
     sorted[key] = sortKeys(Reflect.get(value, key));

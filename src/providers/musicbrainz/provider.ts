@@ -9,6 +9,7 @@ import {
   ProviderId,
   Resource,
   SCHEMA_VERSION,
+  Isrc,
   type Collection,
   type Track,
 } from "../../core/schema";
@@ -37,9 +38,14 @@ function failure(kind: ScrapeError["kind"], message: string, url: URL): ScrapeEr
   return { kind, message, provider: ID, url: redactUrl(url) };
 }
 
-function shapeChanged(ref: MusicBrainzRef, error: z.ZodError, source: URL): ScrapeError {
+/** Where a zod issue points, for one-line error messages. */
+function issueAt(error: z.ZodError): string {
   const issue = error.issues[0];
-  const where = issue === undefined ? "" : ` at ${issue.path.join(".") || "the top level"}`;
+  return issue === undefined ? "" : ` at ${issue.path.join(".") || "the top level"}`;
+}
+
+function shapeChanged(ref: MusicBrainzRef, error: z.ZodError, source: URL): ScrapeError {
+  const where = issueAt(error);
   return failure("parse_failed", `MusicBrainz ${ref.entity} JSON changed shape${where}.`, source);
 }
 
@@ -85,7 +91,8 @@ function track(
     ...fields,
     plays: null,
     popularity: null,
-    isrcs: [...new Set(recording.isrcs ?? [])],
+    // A malformed code is dropped, not fatal: one bad value must not lose the whole album.
+    isrcs: [...new Set(recording.isrcs ?? [])].filter((code) => Isrc.safeParse(code).success),
     availability: null,
     license: null,
     collection,
@@ -133,13 +140,20 @@ function fromRelease(release: ApiRelease, provenance: BaseProvenance): ResourceI
     type: "album",
     artist: artistName(release["artist-credit"]),
     license: null,
-    trackCount: release.media.reduce((sum, medium) => sum + medium["track-count"], 0),
+    // The tracks returned, not "track-count": pregap and data tracks are not mapped.
+    trackCount: items.length,
   };
   return {
     kind: "collection",
     collection: {
       ...collection,
-      provenance: { ...provenance, contentHash: contentHash(collection, ["provenance"]) },
+      provenance: {
+        ...provenance,
+        contentHash: contentHash(
+          { ...collection, tracks: items.map((item) => item.provenance.contentHash) },
+          ["provenance"],
+        ),
+      },
     },
     page: { items, nextCursor: null },
   };
@@ -152,10 +166,15 @@ function decode(
 ): Result<ResourceInput, ScrapeError> {
   let data: unknown;
   try {
-    data = JSON.parse(new TextDecoder().decode(response.body));
+    // Fatal: broken UTF-8 is a parse failure, not replacement characters in titles.
+    data = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(response.body));
   } catch {
     return err(
-      failure("parse_failed", "MusicBrainz answered with something that is not JSON.", source),
+      failure(
+        "parse_failed",
+        "MusicBrainz answered with something that is not UTF-8 JSON.",
+        source,
+      ),
     );
   }
   const provenance: BaseProvenance = {
@@ -203,8 +222,7 @@ export const musicbrainz: Provider = {
     if (!decoded.ok) return decoded;
     const valid = Resource.safeParse(decoded.value);
     if (!valid.success) {
-      const issue = valid.error.issues[0];
-      const where = issue === undefined ? "" : ` at ${issue.path.join(".")}`;
+      const where = issueAt(valid.error);
       const message = `MusicBrainz ${ref.entity} did not map to a valid record${where}.`;
       return err(failure("validation_failed", message, url));
     }
