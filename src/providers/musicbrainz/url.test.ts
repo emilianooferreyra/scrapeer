@@ -11,6 +11,9 @@ describe("parseMusicBrainzUrl", () => {
     [`https://musicbrainz.org/release/${MBID}?tab=details#top`, "release"],
     [`http://musicbrainz.org/release/${MBID}`, "release"],
     [`https://MusicBrainz.org/release/${MBID.toUpperCase()}`, "release"],
+    [`https://www.musicbrainz.org/release/${MBID}`, "release"],
+    [`https://musicbrainz.org/Release/${MBID}`, "release"],
+    [`https://musicbrainz.org/RECORDING/${MBID}`, "recording"],
   ])("reads %s as a %s", (url, entity) => {
     expect(parseMusicBrainzUrl(new URL(url))).toStrictEqual({ entity, mbid: MBID });
   });
@@ -28,6 +31,7 @@ describe("parseMusicBrainzUrl", () => {
 
   it.each([
     `https://beta.musicbrainz.org/release/${MBID}`,
+    `https://www.www.musicbrainz.org/release/${MBID}`,
     `https://musicbrainz.org.example.com/release/${MBID}`,
     `https://listenbrainz.org/release/${MBID}`,
     `https://musicbrainz.org:8443/release/${MBID}`,

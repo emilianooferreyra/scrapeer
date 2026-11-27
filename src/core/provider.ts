@@ -4,16 +4,28 @@ import type { Result } from "./result";
 import type { ProviderId, Resource } from "./schema";
 import type { HttpTransport, OfficialApi } from "./transport/http";
 
-/** What a provider can do (docs/02-arquitectura.md). */
-export type Capability = "track" | "collection" | "search";
+/**
+ * What a provider can do (docs/02-arquitectura.md). "search" joins when `Provider` gains `search`,
+ * so no provider can announce a capability the contract cannot call.
+ */
+export type Capability = "track" | "collection";
 
-/** Outcome of the terms gate (ADR-020). Closed by default: `export: false` until reviewed. */
-export type ProviderPolicy = {
-  readonly export: boolean;
-  /** ISO date the terms were read at the primary source; `null` while pending. */
-  readonly reviewedAt: string | null;
-  readonly termsUrl: string | null;
-};
+/**
+ * Outcome of the terms gate (ADR-020). Closed by default: `export: false` until reviewed.
+ * Opening export requires the review date and the terms link, so an unreviewed source cannot export.
+ */
+export type ProviderPolicy =
+  | {
+      readonly export: false;
+      /** ISO date the terms were read at the primary source; `null` while pending. */
+      readonly reviewedAt: string | null;
+      readonly termsUrl: string | null;
+    }
+  | {
+      readonly export: true;
+      readonly reviewedAt: string;
+      readonly termsUrl: string;
+    };
 
 /** What a provider receives per call. It never calls `fetch` itself: all network goes through `transport`. */
 export type Ctx = {
