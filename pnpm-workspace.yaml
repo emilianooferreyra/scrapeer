@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+
+# Packages allowed to run install scripts (moved from the player's package.json).
+allowBuilds:
+  esbuild: true
+  sharp: true
