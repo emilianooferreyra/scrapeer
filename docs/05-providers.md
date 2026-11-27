@@ -14,18 +14,18 @@
 
 Estado del acceso verificado el 2026-11-26. Cambia seguido: cada provider lo reconfirma en su puerta.
 
-| Plataforma   | Dificultad | Vía oficial                                                     | Qué exige al usuario                                                   | Plan             |
-| ------------ | ---------- | --------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------- |
-| MusicBrainz  | 🟢 Fácil   | API `/ws/2`: 1 request/s, User-Agent con contacto               | Nada                                                                   | v1.0             |
-| ListenBrainz | 🟢 Fácil   | API `/1/`: 1 request/s, User-Agent con contacto                 | Nada                                                                   | v1.0             |
-| Audius       | 🔴 Fuera   | API pública                                                     | Sus términos prohíben extraer datos y guardarlos más allá de la sesión | Fuera (ADR-025)  |
-| Deezer       | 🔴 Fuera   | API pública de lectura                                          | Sus términos prohíben exportar a una base de datos y el uso para IA    | Fuera (ADR-024)  |
-| YouTube      | 🟢 Fácil   | Data API v3: 10.000 unidades/día; `playlistItems.list` cuesta 1 | API key de Google Cloud                                                | v1.0             |
-| SoundCloud   | 🟡 Media   | API oficial con claves self-serve desde 2026-05                 | Cuenta **Artist Pro**                                                  | Después de v1.0  |
-| Tidal        | 🟡 Media   | API JSON:API con credenciales de cliente                        | App en el portal de desarrolladores                                    | Después de v1.0  |
-| Spotify      | 🟠 Molesta | Web API; el modo desarrollo exige Premium y limita usuarios     | App propia + Premium; **no expone plays**                              | Después de v1.0  |
-| Instagram    | 🔴 Fuera   | Solo cuentas profesionales, con revisión de Meta                | Cuenta de empresa + App Review                                         | Fuera de alcance |
-| TikTok       | 🔴 Fuera   | API de investigación solo para académicos sin fines de lucro    | No aplica                                                              | Fuera de alcance |
+| Plataforma   | Dificultad | Vía oficial                                                     | Qué exige al usuario                                                                   | Plan             |
+| ------------ | ---------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------- |
+| MusicBrainz  | 🟢 Fácil   | API `/ws/2`: 1 request/s, User-Agent con contacto               | Nada                                                                                   | v1.0             |
+| ListenBrainz | 🟢 Fácil   | API `/1/`: 1 request/s, User-Agent con contacto                 | Nada                                                                                   | v1.0             |
+| Audius       | 🔴 Fuera   | API pública                                                     | Sus términos prohíben extraer datos y guardarlos más allá de la sesión                 | Fuera (ADR-025)  |
+| Deezer       | 🔴 Fuera   | API pública de lectura                                          | Sus términos prohíben exportar a una base de datos y el uso para IA                    | Fuera (ADR-024)  |
+| YouTube      | 🟢 Fácil   | Data API v3: 10.000 unidades/día; `playlistItems.list` cuesta 1 | API key de Google Cloud                                                                | v1.0             |
+| SoundCloud   | 🟡 Media   | API oficial con claves self-serve desde 2026-05                 | Cuenta **Artist Pro**; sus términos prohíben guardar en forma persistente              | Fuera (ADR-024)  |
+| Tidal        | 🟡 Media   | API JSON:API con credenciales de cliente                        | App en el portal de desarrolladores                                                    | Después de v1.0  |
+| Spotify      | 🟠 Molesta | Web API; el modo desarrollo exige Premium y limita usuarios     | App propia + Premium; sus términos prohíben bases de datos y la metadata como producto | Fuera (ADR-024)  |
+| Instagram    | 🔴 Fuera   | Solo cuentas profesionales, con revisión de Meta                | Cuenta de empresa + App Review                                                         | Fuera de alcance |
+| TikTok       | 🔴 Fuera   | API de investigación solo para académicos sin fines de lucro    | No aplica                                                                              | Fuera de alcance |
 
 ## Puerta de términos (ADR-020)
 
