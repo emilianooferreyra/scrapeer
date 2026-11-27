@@ -7,7 +7,7 @@ import { Provenance } from "./provenance";
 const Tag = Text.refine((tag) => tag === tag.toLowerCase(), { message: "tags are lowercase" });
 
 /** ISO 3901: country (2 letters), registrant (3 alphanumerics), year (2 digits), designation (5 digits). */
-const Isrc = z
+export const Isrc = z
   .string()
   .regex(/^[A-Z]{2}[A-Z0-9]{3}\d{7}$/, "expected a 12-character ISRC without dashes");
 

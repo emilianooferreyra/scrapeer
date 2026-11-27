@@ -60,6 +60,10 @@ Un provider con `export: false` permite `resolve` y `search`, no guarda tracks e
 ### MusicBrainz
 
 - Un `release` (álbum) resuelve a **colección** de tipo `album`; el orden se conserva en `collection.position`. Un `recording` resuelve a **track**. No hay playlists.
+- El `id` del track es el MBID de la **grabación**, no el del track del release: así cruza con MusicBrainz y ListenBrainz sin adivinar. Si una grabación aparece dos veces en un álbum (una reprise, un disco extra), salen dos filas con el mismo `id` y distinta `collection.position`; la clave del ledger tiene que incluir la posición.
+- `publishedAt` depende del link: en un álbum, todos los tracks llevan la fecha del **release**; en un link de `recording`, la `first-release-date` de la grabación. La misma grabación puede tener dos fechas según cómo se pidió.
+- `trackCount` cuenta los tracks devueltos. Los tracks de pregap y de datos no se mapean.
+- Un ISRC mal formado se descarta; no hace fallar el álbum.
 - **1 request/s por host** como máximo; arriba de eso responde 503 → `rate_limited`.
 - El User-Agent lleva un contacto: `scrapeer/<versión> ( <url del repo> )`.
 - La duración viene en milisegundos: `durationSec` se redondea al segundo; sin duración → `null`.
