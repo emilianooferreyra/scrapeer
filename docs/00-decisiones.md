@@ -31,6 +31,7 @@ Formato: `Estado · Contexto · Decisión · Consecuencias`.
 | ADR-023 | Stack técnico de v1.0                                       | Aceptada                                             |
 | ADR-024 | MusicBrainz y YouTube; `robots.txt` según el tipo de acceso | Aceptada                                             |
 | ADR-025 | ListenBrainz en v1.0: playlists y escuchas                  | Aceptada                                             |
+| ADR-026 | TheAudioDB, Discogs e iTunes después de v1.0                | Aceptada                                             |
 
 ---
 
@@ -474,3 +475,40 @@ Audius se revisó en la misma fecha y queda **afuera**: sus términos de la API 
 - El ID del track es el MBID de la grabación, igual que en MusicBrainz: las dos tablas se cruzan sin adivinar.
 - La herramienta no cobra por los datos ni ofrece hacerlo: cumple el contrato social. El README lo dice para quien la use.
 - Queda pendiente registrar el proyecto en el nivel sin costo que MetaBrainz pide a proyectos open source.
+
+## ADR-026 — TheAudioDB, Discogs e iTunes después de v1.0
+
+**Fecha.** 2026-11-27. **Amplía** ADR-024 y ADR-025. No cambia el alcance de v1.0.
+
+**Contexto.** Hacían falta más fuentes de metadata musical. Se leyeron los términos de doce plataformas en su fuente primaria el 2026-11-27, junto con su `robots.txt`:
+
+| Plataforma            | Lo que dice la fuente                                                                                                                                                                                                     | Resultado         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| TheAudioDB            | [Términos](https://www.theaudiodb.com/docs_terms_of_use.php) del 2025-01-07: "You can scrape, copy and modify any content returned from the API, as long as you use the official end points"; no se puede revender la API | Entra             |
+| Discogs               | [Términos de la API](https://support.discogs.com/hc/en-us/articles/360009334593) del 2025-05-27: títulos, fechas, tracklists, créditos e identificadores son CC0; imágenes, usuarios y marketplace son datos restringidos | Entra con límites |
+| iTunes Search/Lookup  | [Sección Legal](https://performance-partners.apple.com/search-api): sin límite para guardar metadata; portadas y previews son "Promo Content", solo para promocionar y sin descargar; ~20 requests por minuto             | Entra con límites |
+| Last.fm               | [Términos](https://www.last.fm/api/tos) §3.1: "solely for non-commercial purposes"; tope de 100 MB; sin portadas (§5.1.8)                                                                                                 | Solo no comercial |
+| Jamendo               | [Términos](https://devportal.jamendo.com/api_terms_of_use) §3.3: uso libre solo no comercial, caché mínima; §4.1: backlink en cada contenido                                                                              | Solo no comercial |
+| Setlist.fm            | [Términos](https://www.setlist.fm/help/terms): "solely for non-commercial purposes"; atribución donde se usen los datos. Son conciertos, no tracks                                                                        | Solo no comercial |
+| Mixcloud              | [Términos](https://www.mixcloud.com/terms/) §5.1.16: prohíbe usar los datos con IA generativa y para entrenar modelos; no habla de guardar ni exportar                                                                    | Solo no comercial |
+| Tidal                 | Developer Terms v3.0 §II.1: prohíbe armar "compilations or databases of TIDAL Content"; Guidelines §III: prohíbe "the transfer of data to another service"; §II.1 prohíbe usarlo con herramientas de IA                   | Fuera             |
+| Beatport              | Términos §F.1: la API es para "pre-approved licensees"; §F.2: prohíbe distribuir "any content or data provided through the Beatport API"                                                                                  | Fuera             |
+| Apple Music API       | Apple Developer Program License Agreement §3.3.6(D): solo para dar acceso a la suscripción del usuario; la metadata no se usa separada de la reproducción                                                                 | Fuera             |
+| Genius                | [Términos](https://genius.com/static/terms) del 2026-01-13: prohíbe copiar, scrapear y distribuir su contenido                                                                                                            | Fuera             |
+| Qobuz, 1001Tracklists | Sin API pública. 1001Tracklists bloquea data centers y VPN "to mitigate heavy scraping", y sus términos no están enlazados                                                                                                | Fuera             |
+
+**Decisión.**
+
+- **Entran tres providers para después de v1.0**: TheAudioDB, Discogs e iTunes. Cada uno pasa igual la puerta de términos y el checklist antes de escribirse (ADR-020, ADR-024).
+- **TheAudioDB.** Solo los endpoints oficiales. La clave del usuario va por env; la clave pública compartida (30 requests por minuto) sirve para probar. Las portadas llevan la fuente.
+- **Discogs.** Solo los campos CC0 llegan al export. Las imágenes van como URL, nunca descargadas. Cada export lleva "Data provided by Discogs." con su link. La API pide no guardar más de lo necesario ni mostrar datos con más de 6 horas de atraso: el manifest registra cuándo se bajó cada fila.
+- **iTunes.** Solo `/lookup` por ID; `/search` está bloqueado en su `robots.txt` y no hace falta para resolver links. Portadas y previews van como URL: nunca se descargan ni se guardan.
+- **Las fuentes solo no comerciales quedan afuera por ahora.** scrapeer es MIT y cualquiera puede usarlo con fines comerciales. Sumarlas exige marcar en el schema qué filas son solo no comerciales, y eso necesita su propio ADR.
+- **Tidal, Beatport, Apple Music API, Genius, Qobuz y 1001Tracklists quedan afuera** mientras sus términos o su acceso no cambien.
+
+**Consecuencias.**
+
+- Discogs suma créditos y lanzamientos en físico; iTunes suma ISRC y fechas del catálogo de Apple; TheAudioDB suma biografías y portadas.
+- Dos puntos son interpretación, no texto literal: que un CSV local cuente como "lo necesario" para Discogs, y que la prohibición de IA de Tidal alcance a la superficie MCP. Se reconfirman en la puerta de cada provider.
+- Los volcados mensuales de Discogs son CC0 sin las condiciones de la API: quedan como alternativa a evaluar en su puerta.
+- Queda pendiente escribirle a 1001Tracklists para pedir acceso.

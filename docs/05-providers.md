@@ -22,7 +22,11 @@ Estado del acceso verificado el 2026-11-26. Cambia seguido: cada provider lo rec
 | Deezer       | 🔴 Fuera   | API pública de lectura                                          | Sus términos prohíben exportar a una base de datos y el uso para IA                    | Fuera (ADR-024)  |
 | YouTube      | 🟢 Fácil   | Data API v3: 10.000 unidades/día; `playlistItems.list` cuesta 1 | API key de Google Cloud                                                                | v1.0             |
 | SoundCloud   | 🟡 Media   | API oficial con claves self-serve desde 2026-05                 | Cuenta **Artist Pro**; sus términos prohíben guardar en forma persistente              | Fuera (ADR-024)  |
-| Tidal        | 🟡 Media   | API JSON:API con credenciales de cliente                        | App en el portal de desarrolladores                                                    | Después de v1.0  |
+| Tidal        | 🔴 Fuera   | API JSON:API con credenciales de cliente                        | Sus términos prohíben bases de datos, pasar datos a otro servicio y el uso con IA      | Fuera (ADR-026)  |
+| TheAudioDB   | 🟢 Fácil   | API JSON: clave pública de prueba, 30 requests/min              | Clave propia para uso real                                                             | Después de v1.0  |
+| Discogs      | 🟢 Fácil   | API `/database`: 25 requests/min sin clave                      | Nada; atribución "Data provided by Discogs."                                           | Después de v1.0  |
+| iTunes       | 🟢 Fácil   | Search/Lookup API: ~20 requests/min                             | Nada; portadas y previews solo como URL                                                | Después de v1.0  |
+| Beatport     | 🔴 Fuera   | API v4 solo para socios aprobados                               | Sus términos prohíben distribuir los datos                                             | Fuera (ADR-026)  |
 | Spotify      | 🟠 Molesta | Web API; el modo desarrollo exige Premium y limita usuarios     | App propia + Premium; sus términos prohíben bases de datos y la metadata como producto | Fuera (ADR-024)  |
 | Instagram    | 🔴 Fuera   | Solo cuentas profesionales, con revisión de Meta                | Cuenta de empresa + App Review                                                         | Fuera de alcance |
 | TikTok       | 🔴 Fuera   | API de investigación solo para académicos sin fines de lucro    | No aplica                                                                              | Fuera de alcance |
@@ -137,13 +141,13 @@ export const provider: Provider = {
 
 ## Providers posteriores
 
-| Fuente                       | Qué agregaría                                  | Obstáculo conocido                                  |
-| ---------------------------- | ---------------------------------------------- | --------------------------------------------------- |
-| SoundCloud                   | El caso del tutorial original, por API oficial | Artist Pro; términos por revisar                    |
-| Tidal                        | Catálogo con ISRC                              | Términos por revisar                                |
-| Spotify                      | La plataforma más pedida                       | Modo desarrollo restringido; sin plays              |
-| Audius                       | Licencia como texto libre, redirects           | Términos de la API por revisar                      |
-| Internet Archive             | Licencias CC variadas, items de N archivos     | Términos y límites por revisar                      |
-| Jamendo                      | Licencia por track                             | Términos: uso libre solo no comercial y sin caching |
-| Bandcamp                     | HTML estático                                  | `robots.txt` bloquea `/search` y casi todo `/api/`  |
-| Mixcloud, Discogs, Freesound | Contenido largo, releases, sonidos CC          | Términos por revisar                                |
+| Fuente                       | Qué agregaría                                  | Condición (ADR-026)                                             |
+| ---------------------------- | ---------------------------------------------- | --------------------------------------------------------------- |
+| TheAudioDB                   | Biografías, portadas, datos de artista y álbum | Endpoints oficiales; citar la fuente de las portadas            |
+| Discogs                      | Créditos, lanzamientos en físico, sellos       | Solo campos CC0; imágenes como URL; atribución en cada export   |
+| iTunes                       | ISRC, fechas y portadas del catálogo de Apple  | Solo `/lookup`; portadas y previews como URL, nunca descargadas |
+| Last.fm, Jamendo, Setlist.fm | Tags, música CC, setlists                      | Solo no comercial: falta un ADR para marcar esas filas          |
+| Mixcloud                     | Sets y contenido largo                         | Solo no comercial; prohíbe el uso con IA                        |
+| Internet Archive, Freesound  | Licencias CC variadas, sonidos CC              | Términos por revisar                                            |
+
+**Fuera (ADR-024, ADR-025, ADR-026):** Deezer, Spotify, SoundCloud, Audius, Tidal, Beatport, Apple Music API, Genius, Qobuz, Bandcamp y 1001Tracklists.

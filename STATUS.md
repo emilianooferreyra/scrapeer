@@ -1,6 +1,6 @@
 # STATUS
 
-**Última actualización:** 2026-11-26
+**Última actualización:** 2026-11-27
 **Fase actual:** 1 — rebanada vertical con MusicBrainz (pasos 0 y 1 hechos)
 **Nombre:** `scrapeer`
 
@@ -18,6 +18,7 @@ Link de álbum o track de **MusicBrainz**, playlist de **ListenBrainz**, o playl
 - [x] Stack técnico: ADR-023
 - [x] Términos y `robots.txt` de Deezer, Spotify, SoundCloud, YouTube y MusicBrainz: ADR-024 (Deezer sale, entra MusicBrainz, `robots.txt` según el tipo de acceso, `isrcs[]`)
 - [x] ListenBrainz entra (playlists y escuchas) y Audius queda afuera: ADR-025
+- [x] Términos de doce plataformas más: TheAudioDB, Discogs e iTunes entran después de v1.0; Tidal, Beatport y otras quedan afuera: ADR-026
 - [x] Acceso de cada plataforma verificado el 2026-11-26 ([`docs/05-providers.md`](docs/05-providers.md#mapa-de-plataformas))
 - [x] `git init -b main`
 - [x] Esqueleto: Node 26, TypeScript 7.0.2, Oxlint 1.95 con reglas de tipos, Oxfmt, Vitest 5, tsdown; reglas de capas verificadas con archivos de prueba
@@ -37,14 +38,13 @@ Link de álbum o track de **MusicBrainz**, playlist de **ListenBrainz**, o playl
 
 ## Pendientes que no son código
 
-| Pendiente                                              | Necesario para      |
-| ------------------------------------------------------ | ------------------- |
-| URL pública del repo (contacto del User-Agent)         | Paso 3, MusicBrainz |
-| Reintentar `robots.txt` de SoundCloud (dio 429)        | Después de v1.0     |
-| Leer términos de Tidal (página solo con JS)            | Después de v1.0     |
-| Registrar scrapeer en el nivel sin costo de MetaBrainz | Fase 3              |
-| Verificar que `scrapeer` esté libre en npm             | Antes de publicar   |
-| Crear una API key de YouTube para probar               | Fase 3              |
+| Pendiente                                              | Necesario para    |
+| ------------------------------------------------------ | ----------------- |
+| Reintentar `robots.txt` de SoundCloud (dio 429)        | Después de v1.0   |
+| Escribir a 1001Tracklists para pedir acceso            | Después de v1.0   |
+| Registrar scrapeer en el nivel sin costo de MetaBrainz | Fase 3            |
+| Verificar que `scrapeer` esté libre en npm             | Antes de publicar |
+| Crear una API key de YouTube para probar               | Fase 3            |
 
 ## Bloqueos
 
