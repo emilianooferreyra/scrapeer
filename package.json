@@ -16,9 +16,6 @@
     "build": "tsdown",
     "check": "pnpm typecheck && pnpm lint && pnpm fmt:check && pnpm test"
   },
-  "dependencies": {
-    "zod": "^4.6.7"
-  },
   "devDependencies": {
     "@types/node": "^26.6.10",
     "oxfmt": "^0.80.0",
