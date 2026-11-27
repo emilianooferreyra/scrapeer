@@ -85,6 +85,30 @@ const stalled = (init: RequestInit) =>
     { status: 200 },
   );
 
+/** A body stream that is already errored: cancelling it rejects. */
+const erroredBody = () =>
+  new ReadableStream<Uint8Array>({
+    start(stream) {
+      stream.error(new TypeError("terminated"));
+    },
+  });
+
+/** Answers after `ms`, or rejects as soon as the request is aborted. */
+const answerAfter = (ms: number, body: string) => (init: RequestInit) =>
+  new Promise<Response>((resolve, reject) => {
+    const timer = setTimeout(() => resolve(new Response(body, { status: 200 })), ms);
+    init.signal?.addEventListener("abort", () => {
+      clearTimeout(timer);
+      reject(init.signal?.reason);
+    });
+  });
+
+/** Like fetch: rejects when the signal it receives is already aborted. */
+const respectsSignal = (init: RequestInit) =>
+  init.signal?.aborted === true
+    ? Promise.reject(init.signal.reason)
+    : Promise.resolve(new Response("{}", { status: 200 }));
+
 /** Never answers; rejects when the request is aborted. */
 const hang = (init: RequestInit) =>
   new Promise<Response>((_resolve, reject) => {
@@ -321,6 +345,70 @@ describe("createHttpTransport", () => {
     });
     const result = await http.get(new URL(API_URL));
     expect(JSON.stringify(result)).not.toContain("SECRET");
+  });
+
+  it("starts the request deadline after the rate-limit wait", async () => {
+    const slowLimiter = { acquire: () => new Promise<void>((resolve) => setTimeout(resolve, 60)) };
+    const { http } = transport(
+      { [ROBOTS_URL]: respectsSignal, [API_URL]: respectsSignal },
+      { rateLimiter: slowLimiter, timeoutMs: 30 },
+    );
+    expect((await http.get(new URL(API_URL))).ok).toBe(true);
+  });
+
+  it("cancels the last response when the redirect limit is reached", async () => {
+    let cancelled = false;
+    const redirect = () =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          cancel() {
+            cancelled = true;
+          },
+        }),
+        { status: 302, headers: { location: API_URL } },
+      );
+    const { http } = transport(
+      { [ROBOTS_URL]: robots(""), [API_URL]: redirect },
+      { maxRedirects: 0 },
+    );
+    expect(await http.get(new URL(API_URL))).toMatchObject({
+      ok: false,
+      error: { kind: "upstream_error" },
+    });
+    expect(cancelled).toBe(true);
+  });
+
+  it("returns the status error even when the error body is already broken", async () => {
+    const { http } = transport({
+      [ROBOTS_URL]: robots(""),
+      [API_URL]: () => new Response(erroredBody(), { status: 404 }),
+    });
+    expect(await http.get(new URL(API_URL))).toMatchObject({
+      ok: false,
+      error: { kind: "not_found" },
+    });
+  });
+
+  it("treats a missing robots.txt with a broken body as allowing everything", async () => {
+    const page = "https://musicbrainz.org/release/abc";
+    const { http } = transport({
+      [ROBOTS_URL]: () => new Response(erroredBody(), { status: 404 }),
+      [page]: new Response("<html>", { status: 200 }),
+    });
+    expect((await http.get(new URL(page))).ok).toBe(true);
+  });
+
+  it("does not let one caller's cancellation fail a shared robots.txt read", async () => {
+    const controller = new AbortController();
+    const { http } = transport({
+      [ROBOTS_URL]: answerAfter(30, ""),
+      [API_URL]: new Response("{}", { status: 200 }),
+    });
+    const first = http.get(new URL(API_URL), { signal: controller.signal });
+    const second = http.get(new URL(API_URL));
+    setTimeout(() => controller.abort(), 5);
+    expect(await first).toMatchObject({ ok: false, error: { kind: "network_error" } });
+    expect((await second).ok).toBe(true);
   });
 
   it("maps a network failure to network_error", async () => {

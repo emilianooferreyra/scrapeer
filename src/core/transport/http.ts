@@ -88,6 +88,15 @@ export function parseRetryAfter(value: string | null, now: Date): number | undef
 /** A sent request: the response, its URL, and the timeout that also bounds reading its body. */
 type Hop = { readonly response: Response; readonly url: URL; readonly timeout: AbortSignal };
 
+/** Cleanup must never replace the result already chosen: a broken stream rejects on cancel. */
+async function discard(stream: { cancel(): Promise<void> } | null): Promise<void> {
+  try {
+    await stream?.cancel();
+  } catch {
+    // Best effort: the stream is already broken or closed.
+  }
+}
+
 /** Rejects when `signal` aborts; lets a promise that ignores signals (DNS) honor the timeout. */
 function untilAborted<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   if (signal.aborted) return Promise.reject(signal.reason);
@@ -151,12 +160,12 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
     const target = checkTarget(url, options.hosts);
     if (!target.ok) return target;
 
-    const timeout = AbortSignal.timeout(timeoutMs);
+    const dnsDeadline = AbortSignal.timeout(timeoutMs);
     let addresses: readonly string[];
     try {
-      addresses = await untilAborted(lookup(url.hostname), timeout);
+      addresses = await untilAborted(lookup(url.hostname), dnsDeadline);
     } catch {
-      if (timeout.aborted) {
+      if (dnsDeadline.aborted) {
         return failure(
           "timeout",
           url,
@@ -183,6 +192,8 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
       return failure("network_error", url, `The request to ${url.hostname} was cancelled.`);
     }
 
+    // The deadline covers the request and its body, not the polite wait before it.
+    const timeout = AbortSignal.timeout(timeoutMs);
     try {
       const response = await fetchImpl(url.href, {
         method: "GET",
@@ -224,9 +235,10 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
         return ok({ ...sent.value, access: access.value });
       }
       if (hop >= maxRedirects) {
+        await discard(response.body);
         return failure("upstream_error", start, `Stopped after ${maxRedirects} redirects.`);
       }
-      await response.body?.cancel();
+      await discard(response.body);
       const next = URL.parse(location, url);
       if (next === null) {
         return failure("upstream_error", url, `${url.hostname} sent an invalid redirect location.`);
@@ -262,7 +274,7 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
       failure("upstream_error", url, `The response is larger than the ${maxBytes}-byte limit.`);
     const declared = Number(response.headers.get("content-length"));
     if (Number.isFinite(declared) && declared > maxBytes) {
-      await response.body?.cancel();
+      await discard(response.body);
       return tooLarge();
     }
     if (response.body === null) return ok(new Uint8Array());
@@ -275,12 +287,12 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
       if (next.done) break;
       const value = next.value;
       if (!(value instanceof Uint8Array)) {
-        await reader.cancel();
+        await discard(reader);
         return failure("upstream_error", url, "The response body is not a byte stream.");
       }
       size += value.byteLength;
       if (size > maxBytes) {
-        await reader.cancel();
+        await discard(reader);
         return tooLarge();
       }
       chunks.push(value);
@@ -294,17 +306,17 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
     return ok(body);
   }
 
-  async function fetchRobots(
-    host: string,
-    signal?: AbortSignal,
-  ): Promise<Result<RobotsRules, ScrapeError>> {
+  /** Shared by every caller for the host, so it is bounded only by its own timeouts. */
+  async function fetchRobots(host: string): Promise<Result<RobotsRules, ScrapeError>> {
     const url = new URL(`https://${host}/robots.txt`);
-    const sent = await follow(url, "text/plain", signal, () => Promise.resolve(ok<Access>("web")));
+    const sent = await follow(url, "text/plain", undefined, () =>
+      Promise.resolve(ok<Access>("web")),
+    );
     if (!sent.ok) return sent;
     const { response } = sent.value;
 
     if (response.status >= 500) {
-      await response.body?.cancel();
+      await discard(response.body);
       return failure(
         "upstream_error",
         url,
@@ -312,7 +324,7 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
       );
     }
     if (response.status >= 400) {
-      await response.body?.cancel();
+      await discard(response.body);
       logger.debug({ host, status: response.status }, "No robots.txt; every path is allowed.");
       return ok([]);
     }
@@ -322,18 +334,49 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
   }
 
   /** Reads robots.txt once per host, before its first request; a failure is retried next time. */
-  function robotsFor(
+  function sharedRobots(host: string): Promise<Result<RobotsRules, ScrapeError>> {
+    const cached = robotsCache.get(host);
+    if (cached !== undefined) return cached;
+    const url = new URL(`https://${host}/robots.txt`);
+    const pending = fetchRobots(host).then(
+      (result) => {
+        if (!result.ok) robotsCache.delete(host);
+        return result;
+      },
+      (error: unknown) => {
+        // fetchRobots returns Results; a rejection here is a bug, so it is logged, not hidden.
+        robotsCache.delete(host);
+        logger.warn({ host, error: String(error) }, "Unexpected failure while reading robots.txt.");
+        return failure("network_error", url, `Reading robots.txt for ${host} failed.`);
+      },
+    );
+    robotsCache.set(host, pending);
+    return pending;
+  }
+
+  /** A caller that cancels stops waiting; the shared read goes on for the others. */
+  async function robotsFor(
     host: string,
     signal?: AbortSignal,
   ): Promise<Result<RobotsRules, ScrapeError>> {
-    const cached = robotsCache.get(host);
-    if (cached !== undefined) return cached;
-    const pending = fetchRobots(host, signal).then((result) => {
-      if (!result.ok) robotsCache.delete(host);
-      return result;
-    });
-    robotsCache.set(host, pending);
-    return pending;
+    const cancelled = () =>
+      failure(
+        "network_error",
+        new URL(`https://${host}/robots.txt`),
+        `The request to ${host} was cancelled.`,
+      );
+    if (signal?.aborted === true) return cancelled();
+    const shared = sharedRobots(host);
+    if (signal === undefined) return shared;
+    try {
+      return await untilAborted(shared, signal);
+    } catch {
+      return failure(
+        "network_error",
+        new URL(`https://${host}/robots.txt`),
+        `The request to ${host} was cancelled.`,
+      );
+    }
   }
 
   /** ADR-024: on a declared official API robots.txt is recorded; on web pages it binds. */
@@ -397,7 +440,7 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
 
       const failed = statusError(response, finalUrl);
       if (failed !== null) {
-        await response.body?.cancel();
+        await discard(response.body);
         return failed;
       }
       const body = await readBody(sent.value);
