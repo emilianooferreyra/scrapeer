@@ -85,7 +85,27 @@ export function parseRetryAfter(value: string | null, now: Date): number | undef
   return Math.max(0, Math.ceil((date - now.getTime()) / 1000));
 }
 
-type Hop = { readonly response: Response; readonly url: URL };
+/** A sent request: the response, its URL, and the timeout that also bounds reading its body. */
+type Hop = { readonly response: Response; readonly url: URL; readonly timeout: AbortSignal };
+
+/** Rejects when `signal` aborts; lets a promise that ignores signals (DNS) honor the timeout. */
+function untilAborted<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(signal.reason);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error);
+      },
+    );
+  });
+}
 
 function failure(
   kind: ScrapeError["kind"],
@@ -131,10 +151,18 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
     const target = checkTarget(url, options.hosts);
     if (!target.ok) return target;
 
+    const timeout = AbortSignal.timeout(timeoutMs);
     let addresses: readonly string[];
     try {
-      addresses = await lookup(url.hostname);
+      addresses = await untilAborted(lookup(url.hostname), timeout);
     } catch {
+      if (timeout.aborted) {
+        return failure(
+          "timeout",
+          url,
+          `Resolving ${url.hostname} took longer than ${timeoutMs} ms.`,
+        );
+      }
       return failure(
         "network_error",
         url,
@@ -149,9 +177,12 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
       );
     }
 
-    await limiter.acquire(url.hostname, limitFor(url.hostname), signal);
+    try {
+      await limiter.acquire(url.hostname, limitFor(url.hostname), signal);
+    } catch {
+      return failure("network_error", url, `The request to ${url.hostname} was cancelled.`);
+    }
 
-    const timeout = AbortSignal.timeout(timeoutMs);
     try {
       const response = await fetchImpl(url.href, {
         method: "GET",
@@ -159,13 +190,14 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
         headers: { "user-agent": options.userAgent, accept },
         signal: signal === undefined ? timeout : AbortSignal.any([timeout, signal]),
       });
-      return ok({ response, url });
+      return ok({ response, url, timeout });
     } catch (error) {
       if (timeout.aborted) {
         return failure("timeout", url, `${url.hostname} did not answer within ${timeoutMs} ms.`);
       }
-      const reason = error instanceof Error ? error.message : "unknown error";
-      return failure("network_error", url, `Request to ${url.hostname} failed: ${reason}.`);
+      // The underlying message is not echoed: it can carry a URL with credentials.
+      const reason = error instanceof Error ? error.name : "unknown error";
+      return failure("network_error", url, `Request to ${url.hostname} failed (${reason}).`);
     }
   }
 
@@ -195,11 +227,37 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
         return failure("upstream_error", start, `Stopped after ${maxRedirects} redirects.`);
       }
       await response.body?.cancel();
-      url = new URL(location, url);
+      const next = URL.parse(location, url);
+      if (next === null) {
+        return failure("upstream_error", url, `${url.hostname} sent an invalid redirect location.`);
+      }
+      url = next;
     }
   }
 
-  async function readBody(response: Response, url: URL): Promise<Result<Uint8Array, ScrapeError>> {
+  async function readBody(hop: Hop): Promise<Result<Uint8Array, ScrapeError>> {
+    try {
+      return await readBodyUnguarded(hop.response, hop.url);
+    } catch {
+      if (hop.timeout.aborted) {
+        return failure(
+          "timeout",
+          hop.url,
+          `${hop.url.hostname} did not finish the response within ${timeoutMs} ms.`,
+        );
+      }
+      return failure(
+        "network_error",
+        hop.url,
+        `The connection to ${hop.url.hostname} broke while reading the response.`,
+      );
+    }
+  }
+
+  async function readBodyUnguarded(
+    response: Response,
+    url: URL,
+  ): Promise<Result<Uint8Array, ScrapeError>> {
     const tooLarge = () =>
       failure("upstream_error", url, `The response is larger than the ${maxBytes}-byte limit.`);
     const declared = Number(response.headers.get("content-length"));
@@ -258,7 +316,7 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
       logger.debug({ host, status: response.status }, "No robots.txt; every path is allowed.");
       return ok([]);
     }
-    const body = await readBody(response, url);
+    const body = await readBody(sent.value);
     if (!body.ok) return body;
     return ok(parseRobots(new TextDecoder().decode(body.value), options.robotsToken));
   }
@@ -342,7 +400,7 @@ export function createHttpTransport(options: HttpTransportOptions): HttpTranspor
         await response.body?.cancel();
         return failed;
       }
-      const body = await readBody(response, finalUrl);
+      const body = await readBody(sent.value);
       if (!body.ok) return body;
 
       return ok({

@@ -43,6 +43,12 @@ describe("isPublicAddress", () => {
     "fd00::1",
     "::ffff:127.0.0.1",
     "::ffff:10.0.0.1",
+    "::127.0.0.1",
+    "64:ff9b::a00:1",
+    "2002:a00:1::1",
+    "fec0::1",
+    "100::1",
+    "2001:db8::1",
     "not-an-ip",
   ])("rejects %s", (ip) => {
     expect(isPublicAddress(ip)).toBe(false);

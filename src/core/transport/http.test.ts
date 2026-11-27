@@ -61,6 +61,30 @@ function transport(routes: Record<string, Route>, overrides: Partial<HttpTranspo
 
 const robots = (text: string) => new Response(text, { status: 200 });
 
+/** Sends one byte, then the stream breaks. */
+const broken = () =>
+  new Response(
+    new ReadableStream<Uint8Array>({
+      start(stream) {
+        stream.enqueue(new Uint8Array([1]));
+        stream.error(new TypeError("terminated"));
+      },
+    }),
+    { status: 200 },
+  );
+
+/** Sends one byte, then stalls until the request is aborted. */
+const stalled = (init: RequestInit) =>
+  new Response(
+    new ReadableStream<Uint8Array>({
+      start(stream) {
+        stream.enqueue(new Uint8Array([1]));
+        init.signal?.addEventListener("abort", () => stream.error(init.signal?.reason));
+      },
+    }),
+    { status: 200 },
+  );
+
 /** Never answers; rejects when the request is aborted. */
 const hang = (init: RequestInit) =>
   new Promise<Response>((_resolve, reject) => {
@@ -240,6 +264,63 @@ describe("createHttpTransport", () => {
       ok: false,
       error: { kind: "timeout" },
     });
+  });
+
+  it("returns an error, not an exception, for a malformed redirect location", async () => {
+    const { http } = transport({
+      [ROBOTS_URL]: robots(""),
+      [API_URL]: new Response(null, { status: 302, headers: { location: "https://[bad" } }),
+    });
+    expect(await http.get(new URL(API_URL))).toMatchObject({
+      ok: false,
+      error: { kind: "upstream_error" },
+    });
+  });
+
+  it("returns an error when the caller cancels during the rate-limit wait", async () => {
+    const controller = new AbortController();
+    const { http } = transport(
+      { [ROBOTS_URL]: robots(""), [API_URL]: new Response("{}", { status: 200 }) },
+      { rateLimiter: { acquire: () => Promise.reject(new DOMException("aborted", "AbortError")) } },
+    );
+    controller.abort();
+    expect(await http.get(new URL(API_URL), { signal: controller.signal })).toMatchObject({
+      ok: false,
+      error: { kind: "network_error" },
+    });
+  });
+
+  it("returns network_error when the body stream breaks", async () => {
+    const { http } = transport({ [ROBOTS_URL]: robots(""), [API_URL]: broken });
+    expect(await http.get(new URL(API_URL))).toMatchObject({
+      ok: false,
+      error: { kind: "network_error" },
+    });
+  });
+
+  it("times out while reading a body that stalls", async () => {
+    const { http } = transport({ [ROBOTS_URL]: robots(""), [API_URL]: stalled }, { timeoutMs: 30 });
+    expect(await http.get(new URL(API_URL))).toMatchObject({
+      ok: false,
+      error: { kind: "timeout" },
+    });
+  });
+
+  it("times out a DNS lookup that never answers", async () => {
+    const { http } = transport({}, { lookup: () => new Promise(() => undefined), timeoutMs: 30 });
+    expect(await http.get(new URL(API_URL))).toMatchObject({
+      ok: false,
+      error: { kind: "timeout" },
+    });
+  });
+
+  it("does not echo the underlying network error, which can carry credentials", async () => {
+    const { http } = transport({
+      [ROBOTS_URL]: robots(""),
+      [API_URL]: () => Promise.reject(new TypeError("failed https://x.test/?api_key=SECRET")),
+    });
+    const result = await http.get(new URL(API_URL));
+    expect(JSON.stringify(result)).not.toContain("SECRET");
   });
 
   it("maps a network failure to network_error", async () => {
