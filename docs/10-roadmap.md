@@ -38,10 +38,12 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 
 **Done:** alguien ajeno pega un link de MusicBrainz y descarga el CSV en menos de 60 s. Se graba el GIF.
 
-## Fase 3 — YouTube y congelamiento
+## Fase 3 — YouTube, ListenBrainz y congelamiento
 
 - [ ] Clave del usuario por env (`SCRAPEER_YOUTUBE_API_KEY`), redactada en logs, provenance y fixtures
 - [ ] `resolve` de video y playlist, con paginación por cursor
+- [ ] ListenBrainz: `resolve` de playlist con `plays` de escuchas (ADR-025)
+- [ ] Decidir si las filas de MusicBrainz suman escuchas de ListenBrainz y cómo queda su procedencia
 - [ ] Budget de cuota diaria: el run se corta limpio con `budget_exceeded`
 - [ ] Métricas separadas: vistas en `plays`, nunca en `popularity`
 - [ ] Vencimiento a 30 días de los datos de YouTube en el manifest ([`05-providers.md`](05-providers.md))

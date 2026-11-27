@@ -1,6 +1,6 @@
 # 02 — Arquitectura
 
-> **v1.0 (ADR-021):** transport `http`, providers por API oficial (MusicBrainz, YouTube; ADR-024), UI local, CLI y MCP local. REST pública, HTML y navegador son v2; aparecen acá porque el diseño los admite.
+> **v1.0 (ADR-021):** transport `http`, providers por API oficial (MusicBrainz, ListenBrainz, YouTube; ADR-024, ADR-025), UI local, CLI y MCP local. REST pública, HTML y navegador son v2; aparecen acá porque el diseño los admite.
 
 ## La decisión central
 
@@ -151,7 +151,7 @@ Orden **fijo**. Solo se baja un escalón si el anterior falla, y cada caída se 
 scrapeer/
 ├─ src/
 │  ├─ core/        # schema, Result, errores, rate limit, ledger, transport, servicio
-│  ├─ providers/   # musicbrainz · youtube
+│  ├─ providers/   # musicbrainz · listenbrainz · youtube
 │  └─ adapters/
 │     ├─ cli/      # commander
 │     ├─ ui/       # Hono local + estáticos (Fase 2)

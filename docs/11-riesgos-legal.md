@@ -57,6 +57,7 @@
 - Respects robots.txt for every web page; official APIs are used under their own documented terms and rate limits. Always identifies itself.
 - Per-host rate limiting with jitter; no hammering.
 - Metadata only; does not download audio.
+- Does not sell data. MetaBrainz data (MusicBrainz, ListenBrainz) must not be resold.
 - Export is disabled for sources whose terms do not clearly allow it.
 - Does not bypass logins, paywalls, or DRM.
 - Stores the declared license + provenance per track. A missing license is

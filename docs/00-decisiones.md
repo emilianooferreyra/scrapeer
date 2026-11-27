@@ -30,6 +30,7 @@ Formato: `Estado · Contexto · Decisión · Consecuencias`.
 | ADR-022 | Acceso solo por vías oficiales, con las claves del usuario  | Aceptada                                             |
 | ADR-023 | Stack técnico de v1.0                                       | Aceptada                                             |
 | ADR-024 | MusicBrainz y YouTube; `robots.txt` según el tipo de acceso | Aceptada                                             |
+| ADR-025 | ListenBrainz en v1.0: playlists y escuchas                  | Aceptada                                             |
 
 ---
 
@@ -440,3 +441,36 @@ Deezer, Spotify y SoundCloud prohíben justo lo que hace la herramienta: exporta
 - Los exports de YouTube llevan fecha de vencimiento a 30 días en el manifest.
 - El transport sabe qué hosts son API oficial; la consulta de `robots.txt` antes del primer request sigue en el transport para todos los hosts.
 - ADR-021 sigue vigente en todo lo demás: producto, superficies y formatos.
+
+---
+
+## ADR-025 — ListenBrainz en v1.0: playlists y escuchas
+
+**Fecha.** 2026-11-26. **Amplía** ADR-024.
+
+**Contexto.** MusicBrainz no tiene playlists ni conteos de reproducción, y el caso de origen es _link de playlist → tabla con plays_. ListenBrainz, de la misma fundación (MetaBrainz), tiene las dos cosas y usa los mismos IDs de grabación. Revisión del 2026-11-26 en fuentes primarias:
+
+| Tema         | Lo que dice la fuente                                                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Términos     | [listenbrainz.org/terms-of-service](https://listenbrainz.org/terms-of-service/): "defined by the social contract and privacy policies of the Foundation"                       |
+| Uso          | [Contrato social](https://metabrainz.org/social-contract): "companies can use the work of our volunteers without any charge, but charging for the content itself is forbidden" |
+| Licencia     | Contenido factual en dominio público; volcados en CC0. Uso comercial "Allowed, but financial support strongly urged"                                                           |
+| IA, export   | Ninguna cláusula los prohíbe                                                                                                                                                   |
+| API          | 1 request/s por aplicación, User-Agent con contacto, 429 al pasarse; `GET /1/playlist/{mbid}` y `POST /1/popularity/recording` documentados                                    |
+| `robots.txt` | `api.listenbrainz.org` responde 410; `listenbrainz.org` bloquea páginas web como `/recording/`, que no se usan                                                                 |
+
+Audius se revisó en la misma fecha y queda **afuera**: sus términos de la API prohíben "scraping, data harvesting… or other data extraction methods to extract data from the API" (§4(a)(v)) y solo permiten guardar datos durante la sesión.
+
+**Decisión.**
+
+- **ListenBrainz entra en v1.0** como provider, en la Fase 3 junto a YouTube.
+- Resuelve links de playlist (`listenbrainz.org/playlist/{mbid}`) a una **colección ordenada**.
+- Llena `plays` con `total_listen_count`: las escuchas que registraron los usuarios de ListenBrainz. No son reproducciones globales; la documentación del campo lo aclara.
+- Las filas de MusicBrainz siguen con `plays: null`. Sumarles las escuchas de ListenBrainz mezclaría dos fuentes en una fila con una sola procedencia; se decide al congelar el schema, en la Fase 3.
+
+**Consecuencias.**
+
+- Vuelve el caso del tutorial: un link de playlist da una tabla ordenada con escuchas, sin credenciales.
+- El ID del track es el MBID de la grabación, igual que en MusicBrainz: las dos tablas se cruzan sin adivinar.
+- La herramienta no cobra por los datos ni ofrece hacerlo: cumple el contrato social. El README lo dice para quien la use.
+- Queda pendiente registrar el proyecto en el nivel sin costo que MetaBrainz pide a proyectos open source.

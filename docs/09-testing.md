@@ -21,6 +21,7 @@
 ```
 fixtures/
 ├─ musicbrainz/       # recording, release ordenado, varios ISRC, fecha parcial, 503
+├─ listenbrainz/      # playlist ordenada, popularidad en lote, track sin MBID, 429
 ├─ youtube/           # video, playlist paginada, video privado, cuota agotada, clave inválida
 ├─ licenses.csv       # valor crudo → License esperada
 └─ urls.csv           # tabla de URLs para match()

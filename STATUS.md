@@ -8,7 +8,7 @@
 
 ## v1.0 en una línea
 
-Link de álbum o track de **MusicBrainz**, o de playlist o video de **YouTube**, → tabla con las mismas columnas → CSV + JSONL, desde **UI local**, **CLI** y **MCP** (ADR-021, ADR-024). Open source, MIT.
+Link de álbum o track de **MusicBrainz**, playlist de **ListenBrainz**, o playlist o video de **YouTube**, → tabla con las mismas columnas → CSV + JSONL, desde **UI local**, **CLI** y **MCP** (ADR-021, ADR-024, ADR-025). Open source, MIT.
 
 ## Hecho
 
@@ -17,6 +17,7 @@ Link de álbum o track de **MusicBrainz**, o de playlist o video de **YouTube**,
 - [x] Producto redefinido: ADR-021 (link → tabla, Deezer + YouTube, UI local) y ADR-022 (solo vías oficiales, claves del usuario, sin TikTok ni Instagram)
 - [x] Stack técnico: ADR-023
 - [x] Términos y `robots.txt` de Deezer, Spotify, SoundCloud, YouTube y MusicBrainz: ADR-024 (Deezer sale, entra MusicBrainz, `robots.txt` según el tipo de acceso, `isrcs[]`)
+- [x] ListenBrainz entra (playlists y escuchas) y Audius queda afuera: ADR-025
 - [x] Acceso de cada plataforma verificado el 2026-11-26 ([`docs/05-providers.md`](docs/05-providers.md#mapa-de-plataformas))
 - [x] `git init -b main`
 - [x] Esqueleto: Node 26, TypeScript 7.0.2, Oxlint 1.95 con reglas de tipos, Oxfmt, Vitest 5, tsdown; reglas de capas verificadas con archivos de prueba
@@ -36,13 +37,14 @@ Link de álbum o track de **MusicBrainz**, o de playlist o video de **YouTube**,
 
 ## Pendientes que no son código
 
-| Pendiente                                       | Necesario para      |
-| ----------------------------------------------- | ------------------- |
-| URL pública del repo (contacto del User-Agent)  | Paso 3, MusicBrainz |
-| Reintentar `robots.txt` de SoundCloud (dio 429) | Después de v1.0     |
-| Leer términos de Tidal (página solo con JS)     | Después de v1.0     |
-| Verificar que `scrapeer` esté libre en npm      | Antes de publicar   |
-| Crear una API key de YouTube para probar        | Fase 3              |
+| Pendiente                                              | Necesario para      |
+| ------------------------------------------------------ | ------------------- |
+| URL pública del repo (contacto del User-Agent)         | Paso 3, MusicBrainz |
+| Reintentar `robots.txt` de SoundCloud (dio 429)        | Después de v1.0     |
+| Leer términos de Tidal (página solo con JS)            | Después de v1.0     |
+| Registrar scrapeer en el nivel sin costo de MetaBrainz | Fase 3              |
+| Verificar que `scrapeer` esté libre en npm             | Antes de publicar   |
+| Crear una API key de YouTube para probar               | Fase 3              |
 
 ## Bloqueos
 

@@ -1,8 +1,8 @@
 # 01 — Alcance
 
-> **v1.0:** pegás el link de un álbum o un track de **MusicBrainz**, o de una playlist o un video de **YouTube**, y obtenés una tabla con la metadata, exportable a CSV y JSONL, desde una **UI web local**, la **CLI** o **MCP**.
+> **v1.0:** pegás el link de un álbum o un track de **MusicBrainz**, de una playlist de **ListenBrainz**, o de una playlist o un video de **YouTube**, y obtenés una tabla con la metadata, exportable a CSV y JSONL, desde una **UI web local**, la **CLI** o **MCP**.
 
-Decisiones: [ADR-021](00-decisiones.md#adr-021--el-producto-un-link-de-cualquier-plataforma--una-tabla) , [ADR-022](00-decisiones.md#adr-022--acceso-solo-por-vías-oficiales-con-las-claves-del-usuario) y [ADR-024](00-decisiones.md#adr-024--musicbrainz-y-youtube-en-v10-robotstxt-según-el-tipo-de-acceso).
+Decisiones: [ADR-021](00-decisiones.md#adr-021--el-producto-un-link-de-cualquier-plataforma--una-tabla) , [ADR-022](00-decisiones.md#adr-022--acceso-solo-por-vías-oficiales-con-las-claves-del-usuario) , [ADR-024](00-decisiones.md#adr-024--musicbrainz-y-youtube-en-v10-robotstxt-según-el-tipo-de-acceso) y [ADR-025](00-decisiones.md#adr-025--listenbrainz-en-v10-playlists-y-escuchas).
 
 ## La frase del proyecto
 
@@ -46,6 +46,7 @@ Nace de un tutorial de Decodo ([video](https://www.youtube.com/watch?v=BMgrLd-U4
 ### Providers
 
 - [ ] **MusicBrainz** — API pública sin clave, datos CC0: el quick start
+- [ ] **ListenBrainz** — playlists ordenadas con escuchas, sin clave
 - [ ] **YouTube** — Data API v3 con la clave del usuario: pone a prueba el schema
 
 ### Salidas

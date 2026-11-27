@@ -10,7 +10,7 @@ Este directorio contiene el **diseño completo** de una herramienta open source 
 
 **Qué NO es:** un producto de AI ni un servicio. Es una herramienta que corre en tu máquina, con tus claves, y **que la AI puede usar** vía MCP.
 
-**Estado:** alcance v1.0 = MusicBrainz + YouTube, UI local + CLI + MCP (ADR-021, ADR-024), schema abierto hasta cerrar la Fase 3, implementación no iniciada. Este directorio es la fuente de verdad hasta que exista código.
+**Estado:** alcance v1.0 = MusicBrainz + ListenBrainz + YouTube, UI local + CLI + MCP (ADR-021, ADR-024, ADR-025), schema abierto hasta cerrar la Fase 3, implementación no iniciada. Este directorio es la fuente de verdad hasta que exista código.
 
 ---
 
