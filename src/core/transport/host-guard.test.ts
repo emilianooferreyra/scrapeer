@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkTarget, isPublicAddress } from "./host-guard.js";
+import { checkTarget, isPublicAddress } from "./host-guard";
 
 describe("checkTarget", () => {
   const hosts = ["musicbrainz.org"];

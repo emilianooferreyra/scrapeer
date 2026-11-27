@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { CollectionId, ProviderId } from "./ids.js";
-import { License } from "./license.js";
-import { HttpUrl, SchemaVersion, Text } from "./primitives.js";
-import { Provenance } from "./provenance.js";
-import { Track } from "./track.js";
+import { CollectionId, ProviderId } from "./ids";
+import { License } from "./license";
+import { HttpUrl, SchemaVersion, Text } from "./primitives";
+import { Provenance } from "./provenance";
+import { Track } from "./track";
 
 export const Collection = z.strictObject({
   schemaVersion: SchemaVersion,

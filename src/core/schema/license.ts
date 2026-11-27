@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { HttpUrl, Text } from "./primitives.js";
+import { HttpUrl, Text } from "./primitives";
 
 /**
  * Structured license (ADR-014). `null` at the track level means the source

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPathAllowed, parseRobots } from "./robots.js";
+import { isPathAllowed, parseRobots } from "./robots";
 
 const MUSICBRAINZ = [
   "User-agent: *",

@@ -1,6 +1,6 @@
 import { BlockList, isIP } from "node:net";
-import type { ScrapeError } from "../errors.js";
-import { err, ok, type Result } from "../result.js";
+import type { ScrapeError } from "../errors";
+import { err, ok, type Result } from "../result";
 
 /** Destination checks that run before every request and on every redirect hop (ADR-018). */
 export function checkTarget(url: URL, allowedHosts: readonly string[]): Result<URL, ScrapeError> {

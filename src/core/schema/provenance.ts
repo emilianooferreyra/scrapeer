@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { hasCredentials } from "../redact.js";
-import { HttpUrl, Sha256, Text, UtcTimestamp } from "./primitives.js";
+import { hasCredentials } from "../redact";
+import { HttpUrl, Sha256, Text, UtcTimestamp } from "./primitives";
 
 export const Transport = z.enum(["api", "json", "oembed", "html", "browser"]);
 export type Transport = z.infer<typeof Transport>;

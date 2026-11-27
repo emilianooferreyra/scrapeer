@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { License, ProviderId, Resource } from "./index.js";
+import { License, ProviderId, Resource } from "./index";
 
 const HASH = `sha256:${"b".repeat(64)}`;
 const provenance = {

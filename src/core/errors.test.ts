@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isRetryable, ScrapeError, SCRAPE_ERROR_KINDS } from "./errors.js";
+import { isRetryable, ScrapeError, SCRAPE_ERROR_KINDS } from "./errors";
 
 const RETRYABLE = new Set(["rate_limited", "upstream_error", "timeout", "network_error"]);
 

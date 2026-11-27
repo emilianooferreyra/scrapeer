@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Logger } from "../logger.js";
-import { createHttpTransport, type FetchLike, type HttpTransportOptions } from "./http.js";
-import type { RateLimiter } from "./rate-limiter.js";
+import type { Logger } from "../logger";
+import { createHttpTransport, type FetchLike, type HttpTransportOptions } from "./http";
+import type { RateLimiter } from "./rate-limiter";
 
 type Route = Response | ((init: RequestInit) => Response | Promise<Response>);
 

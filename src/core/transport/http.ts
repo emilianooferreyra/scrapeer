@@ -1,12 +1,12 @@
 import { lookup as dnsLookup } from "node:dns/promises";
 import { setTimeout as delayFor } from "node:timers/promises";
-import type { ScrapeError } from "../errors.js";
-import { silentLogger, type Logger } from "../logger.js";
-import { redactUrl } from "../redact.js";
-import { err, ok, type Result } from "../result.js";
-import { checkTarget, isPublicAddress } from "./host-guard.js";
-import { createRateLimiter, type HostLimit, type RateLimiter } from "./rate-limiter.js";
-import { isPathAllowed, parseRobots, type RobotsRules } from "./robots.js";
+import type { ScrapeError } from "../errors";
+import { silentLogger, type Logger } from "../logger";
+import { redactUrl } from "../redact";
+import { err, ok, type Result } from "../result";
+import { checkTarget, isPublicAddress } from "./host-guard";
+import { createRateLimiter, type HostLimit, type RateLimiter } from "./rate-limiter";
+import { isPathAllowed, parseRobots, type RobotsRules } from "./robots";
 
 /** A host and path prefix a provider declares as its documented API (ADR-024). */
 export type OfficialApi = {
