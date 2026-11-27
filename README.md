@@ -34,12 +34,13 @@ It runs on your machine, with your own API keys, and only through each platform'
 
 ---
 
-## What scrapeer will not do
+## How it gets the data
 
-- **No evasion.** No residential proxies, no fake User-Agent, no extracted secrets, no cookies from your browser.
-- **Official access only.** A source enters only after its terms are read and allow exporting metadata. Deezer, Spotify, SoundCloud, Tidal, Beatport and others stay out while their terms forbid it ([ADR-024](docs/00-decisiones.md), [ADR-026](docs/00-decisiones.md)).
-- **No audio.** It never downloads audio or video.
-- **No reselling.** MetaBrainz data (MusicBrainz, ListenBrainz) must not be sold; scrapeer does not sell data or offer to.
+- Through each platform's official API, with your own keys when one is needed.
+- Politely: it identifies itself, respects rate limits and checks `robots.txt`.
+- Metadata first: titles, credits, counts and links.
+
+Data from MusicBrainz and ListenBrainz follows the [MetaBrainz social contract](https://metabrainz.org/social-contract): free to use, not to resell.
 
 ---
 
