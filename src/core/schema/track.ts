@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { CollectionId, ProviderId, TrackId } from "./ids.js";
-import { License } from "./license.js";
-import { HttpUrl, SchemaVersion, Text, UtcTimestamp } from "./primitives.js";
-import { Provenance } from "./provenance.js";
+import { CollectionId, ProviderId, TrackId } from "./ids";
+import { License } from "./license";
+import { HttpUrl, SchemaVersion, Text, UtcTimestamp } from "./primitives";
+import { Provenance } from "./provenance";
 
 const Tag = Text.refine((tag) => tag === tag.toLowerCase(), { message: "tags are lowercase" });
 

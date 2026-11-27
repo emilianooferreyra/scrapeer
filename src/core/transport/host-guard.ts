@@ -1,6 +1,6 @@
 import { BlockList, isIP } from "node:net";
-import type { ScrapeError } from "../errors.js";
-import { err, ok, type Result } from "../result.js";
+import type { ScrapeError } from "../errors";
+import { err, ok, type Result } from "../result";
 
 /** Destination checks that run before every request and on every redirect hop (ADR-018). */
 export function checkTarget(url: URL, allowedHosts: readonly string[]): Result<URL, ScrapeError> {
@@ -37,8 +37,16 @@ for (const [network, prefix] of [
   blocked.addSubnet(network, prefix, "ipv4");
 }
 for (const [network, prefix] of [
-  ["::", 128],
+  // IPv4-compatible (deprecated), which also covers :: and ::1.
+  ["::", 96],
   ["::1", 128],
+  // NAT64, 6to4 and site-local can carry or reach private IPv4 space.
+  ["64:ff9b::", 96],
+  ["2002::", 16],
+  ["fec0::", 10],
+  // Discard-only and documentation ranges.
+  ["100::", 64],
+  ["2001:db8::", 32],
   ["fc00::", 7],
   ["fe80::", 10],
   ["ff00::", 8],

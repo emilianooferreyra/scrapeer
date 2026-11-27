@@ -1,21 +1,6 @@
 import { z } from "zod";
-import { HttpUrl, Sha256, Text, UtcTimestamp } from "./primitives.js";
-
-/** Query parameters that carry credentials and must never be persisted. */
-const CREDENTIAL_PARAMS = [
-  "key",
-  "client_id",
-  "client_secret",
-  "api_key",
-  "apikey",
-  "access_token",
-  "token",
-];
-
-function hasCredentials(url: string): boolean {
-  const params = new URL(url).searchParams;
-  return CREDENTIAL_PARAMS.some((name) => params.has(name));
-}
+import { hasCredentials } from "../redact";
+import { HttpUrl, Sha256, Text, UtcTimestamp } from "./primitives";
 
 export const Transport = z.enum(["api", "json", "oembed", "html", "browser"]);
 export type Transport = z.infer<typeof Transport>;

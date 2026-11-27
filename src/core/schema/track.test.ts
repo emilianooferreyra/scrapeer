@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Track } from "./index.js";
+import { Track } from "./index";
 
 const HASH = `sha256:${"a".repeat(64)}`;
 

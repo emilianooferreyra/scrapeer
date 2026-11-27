@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRateLimiter } from "./rate-limiter.js";
+import { createRateLimiter } from "./rate-limiter";
 
 function fakeClock() {
   let now = 0;
