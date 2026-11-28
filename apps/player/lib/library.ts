@@ -1,12 +1,5 @@
 import { connection } from 'next/server';
-import {
-  createHttpTransport,
-  musicbrainz,
-  silentLogger,
-  USER_AGENT,
-  type Resource,
-  type Track,
-} from '@scrapeer/core';
+import { createScrapeer, type Resource, type Scrapeer, type Track } from '@scrapeer/core';
 import type { Playlist, PlaylistWithSongs, Song } from './types';
 
 /**
@@ -14,17 +7,17 @@ import type { Playlist, PlaylistWithSongs, Song } from './types';
  * Nothing is stored on disk yet: storage is still to be decided (no Postgres).
  */
 type Library = Map<string, PlaylistWithSongs>;
-const shared = globalThis as typeof globalThis & { scrapeerLibrary?: Library };
+const shared = globalThis as typeof globalThis & {
+  scrapeerLibrary?: Library;
+  scrapeerService?: Scrapeer;
+};
 const library: Library = (shared.scrapeerLibrary ??= new Map());
 
-const transport = createHttpTransport({
-  hosts: musicbrainz.hosts,
-  officialApi: musicbrainz.officialApi,
-  userAgent: USER_AGENT,
-  robotsToken: 'scrapeer',
-  // MusicBrainz allows 1 request per second (docs/05-providers.md).
-  limits: { 'musicbrainz.org': { capacity: 1, refillPerSec: 1, jitterMs: 250 } },
-});
+/**
+ * The same service the CLI uses: links resolve and fail with the same messages. Kept on
+ * globalThis like the library, so a dev reload does not start a second rate limiter.
+ */
+const scrapeer: Scrapeer = (shared.scrapeerService ??= createScrapeer());
 
 function toSong(playlistId: string, track: Track, album: string, index: number): Song {
   return {
@@ -74,19 +67,7 @@ export type ResolveOutcome = { ok: true; id: string } | { ok: false; message: st
 
 /** Resolves a pasted link through scrapeer and adds it to the library. */
 export async function resolveLink(input: string): Promise<ResolveOutcome> {
-  const url = URL.parse(input.trim());
-  if (url === null) return { ok: false, message: 'That is not a link.' };
-  if (!musicbrainz.match(url)) {
-    return { ok: false, message: 'For now only MusicBrainz release or recording links work.' };
-  }
-  let result = await musicbrainz.resolve(url, { transport, logger: silentLogger });
-  // MusicBrainz often answers 503 to the first lookup right after robots.txt; one retry,
-  // after the wait it asks for (capped), is enough. General backoff belongs to the core (Phase 4).
-  if (!result.ok && result.error.kind === 'rate_limited') {
-    const waitSec = Math.min(result.error.retryAfterSec ?? 1, 5);
-    await new Promise((resolve) => setTimeout(resolve, waitSec * 1000));
-    result = await musicbrainz.resolve(url, { transport, logger: silentLogger });
-  }
+  const result = await scrapeer.resolve(input);
   if (!result.ok) return { ok: false, message: result.error.message };
   const playlist = toPlaylist(result.value);
   library.set(playlist.id, playlist);
