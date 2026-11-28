@@ -35,7 +35,7 @@ function setup(...answers: ((url: URL) => Result<TransportResponse, ScrapeError>
     const next = answers.shift() ?? reply;
     return next(url);
   });
-  const sleep = vi.fn<(ms: number) => Promise<void>>(async () => undefined);
+  const sleep = vi.fn<(ms: number, signal?: AbortSignal) => Promise<void>>(async () => undefined);
   const scrapeer = createScrapeer({ transport: { id: "http", get }, sleep });
   return { scrapeer, get, sleep };
 }
@@ -77,7 +77,7 @@ describe("createScrapeer().resolve", () => {
     const result = await scrapeer.resolve(IN_RAINBOWS);
     expect(result.ok).toBe(true);
     expect(get).toHaveBeenCalledTimes(2);
-    expect(sleep.mock.calls).toStrictEqual([[2000]]);
+    expect(sleep.mock.calls.map(([ms]) => ms)).toStrictEqual([2000]);
   });
 
   it("waits 1 s without Retry-After and never more than 5 s", async () => {
@@ -85,7 +85,8 @@ describe("createScrapeer().resolve", () => {
     await short.scrapeer.resolve(IN_RAINBOWS);
     const long = setup(() => busy(120));
     await long.scrapeer.resolve(IN_RAINBOWS);
-    expect([short.sleep.mock.calls, long.sleep.mock.calls]).toStrictEqual([[[1000]], [[5000]]]);
+    const waits = [short, long].map(({ sleep }) => sleep.mock.calls.map(([ms]) => ms));
+    expect(waits).toStrictEqual([[1000], [5000]]);
   });
 
   it("gives up after the one retry and returns the rate limit", async () => {
@@ -96,6 +97,28 @@ describe("createScrapeer().resolve", () => {
     const result = await scrapeer.resolve(IN_RAINBOWS);
     expect(result).toMatchObject({ ok: false, error: { kind: "rate_limited", retryAfterSec: 3 } });
     expect(get).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops waiting and does not retry when the caller cancels during the wait", async () => {
+    const get = vi.fn<HttpTransport["get"]>(async () => busy(5));
+    const scrapeer = createScrapeer({ transport: { id: "http", get } });
+    const controller = new AbortController();
+    const started = Date.now();
+    const pending = scrapeer.resolve(IN_RAINBOWS, { signal: controller.signal });
+    setTimeout(() => controller.abort(), 20);
+    expect(await pending).toStrictEqual({
+      ok: false,
+      error: { kind: "network_error", message: "The lookup was cancelled." },
+    });
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes the caller's signal to the wait", async () => {
+    const { scrapeer, sleep } = setup(() => busy(1));
+    const { signal } = new AbortController();
+    await scrapeer.resolve(IN_RAINBOWS, { signal });
+    expect(sleep.mock.calls).toStrictEqual([[1000, signal]]);
   });
 
   it("does not retry other errors", async () => {

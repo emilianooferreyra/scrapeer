@@ -1,5 +1,5 @@
 import { connection } from 'next/server';
-import { createScrapeer, type Resource, type Track } from '@scrapeer/core';
+import { createScrapeer, type Resource, type Scrapeer, type Track } from '@scrapeer/core';
 import type { Playlist, PlaylistWithSongs, Song } from './types';
 
 /**
@@ -7,11 +7,17 @@ import type { Playlist, PlaylistWithSongs, Song } from './types';
  * Nothing is stored on disk yet: storage is still to be decided (no Postgres).
  */
 type Library = Map<string, PlaylistWithSongs>;
-const shared = globalThis as typeof globalThis & { scrapeerLibrary?: Library };
+const shared = globalThis as typeof globalThis & {
+  scrapeerLibrary?: Library;
+  scrapeerService?: Scrapeer;
+};
 const library: Library = (shared.scrapeerLibrary ??= new Map());
 
-/** The same service the CLI uses: links resolve and fail with the same messages. */
-const scrapeer = createScrapeer();
+/**
+ * The same service the CLI uses: links resolve and fail with the same messages. Kept on
+ * globalThis like the library, so a dev reload does not start a second rate limiter.
+ */
+const scrapeer: Scrapeer = (shared.scrapeerService ??= createScrapeer());
 
 function toSong(playlistId: string, track: Track, album: string, index: number): Song {
   return {

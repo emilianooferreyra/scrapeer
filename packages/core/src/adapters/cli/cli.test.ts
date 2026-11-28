@@ -88,6 +88,36 @@ describe("scrapeer CLI", () => {
     });
   });
 
+  it("adds the failing URL to the error line when the error has one", async () => {
+    const out = await cli(
+      ["resolve", LINK],
+      err({
+        kind: "robots_disallowed",
+        message: "robots.txt disallows it.",
+        provider: "musicbrainz",
+        url: "https://musicbrainz.org/release/x",
+      }),
+    );
+    expect(out.stderr).toBe(
+      "robots_disallowed: robots.txt disallows it. provider=musicbrainz url=https://musicbrainz.org/release/x\n",
+    );
+  });
+
+  it("reports a service that throws as one line and exits 1, not a stack trace", async () => {
+    let stdout = "";
+    let stderr = "";
+    const code = await run(
+      ["resolve", LINK],
+      { stdout: (text) => void (stdout += text), stderr: (text) => void (stderr += text) },
+      { resolve: () => Promise.reject(new Error("boom")) },
+    );
+    expect({ code, stdout, stderr }).toStrictEqual({
+      code: 1,
+      stdout: "",
+      stderr: "scrapeer: unexpected error (boom); please report it.\n",
+    });
+  });
+
   it("--help prints the usage on stdout and exits 0", async () => {
     const out = await cli(["--help"]);
     expect(out.code).toBe(0);

@@ -148,18 +148,19 @@ Orden **fijo**. Solo se baja un escalón si el anterior falla, y cada caída se 
 ## Layout del repo
 
 ```
-scrapeer/
-├─ src/
-│  ├─ core/        # schema, Result, errores, rate limit, ledger, transport
-│  ├─ providers/   # musicbrainz · listenbrainz · youtube
-│  ├─ service.ts   # capa de servicio: elige el provider y hace resolve (importa providers, por eso no vive en core/)
-│  └─ adapters/
-│     ├─ cli/      # node:util parseArgs; commander cuando haya varios comandos
-│     ├─ ui/       # Hono local + estáticos (Fase 2)
-│     └─ mcp/      # stdio (Fase 5)
-├─ fixtures/       # respuestas grabadas, por provider
+scrapeer/                 # monorepo pnpm
+├─ packages/core/         # @scrapeer/core
+│  ├─ src/
+│  │  ├─ core/            # schema, Result, errores, rate limit, ledger, transport
+│  │  ├─ providers/       # musicbrainz · listenbrainz · youtube
+│  │  ├─ service.ts       # capa de servicio: elige el provider y hace resolve (importa providers, por eso no vive en core/)
+│  │  └─ adapters/
+│  │     ├─ cli/          # node:util parseArgs; commander cuando haya varios comandos
+│  │     └─ mcp/          # stdio (Fase 5)
+│  └─ fixtures/           # respuestas grabadas, por provider
+├─ apps/player/           # @scrapeer/player: dashboard Next.js, usa la capa de servicio
 ├─ docs/
-└─ package.json    # un solo paquete, binario `scrapeer`
+└─ package.json           # scripts: `pnpm dev` (player), `pnpm scrapeer` (CLI), `pnpm check`
 ```
 
 **Reglas de importación:** `core` no importa de `providers` ni de `adapters`; `providers` solo importa de `core`; los adaptadores solo usan la capa de servicio. Oxlint lo verifica.

@@ -28,6 +28,7 @@ function describe(error: ScrapeError): string {
   const details = [
     error.provider === undefined ? null : `provider=${error.provider}`,
     error.retryAfterSec === undefined ? null : `retryAfter=${error.retryAfterSec}s`,
+    error.url === undefined ? null : `url=${error.url}`,
   ].filter((detail) => detail !== null);
   return [`${error.kind}: ${error.message}`, ...details].join(" ");
 }
@@ -65,7 +66,15 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
   if (link === undefined || rest.length !== 1) return usageError(io, "resolve needs one link");
   if (!isFormat(values.format)) return usageError(io, `unknown format "${values.format}"`);
 
-  const result = await scrapeer.resolve(link);
+  let result;
+  try {
+    result = await scrapeer.resolve(link);
+  } catch (error) {
+    // The service returns Results; a throw is a bug. One line still, never a stack trace.
+    const reason = error instanceof Error ? error.message : String(error);
+    io.stderr(`scrapeer: unexpected error (${reason}); please report it.\n`);
+    return 1;
+  }
   if (!result.ok) {
     io.stderr(`${describe(result.error)}\n`);
     return 1;
