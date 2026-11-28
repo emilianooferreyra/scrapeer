@@ -48,7 +48,7 @@ function toPlaylist(resource: Resource): PlaylistWithSongs {
       name: collection.title,
       artist: collection.artist ?? '',
       kind: 'album',
-      coverUrl: null,
+      coverUrl: songs[0]?.imageUrl ?? null,
       sourceUrl: collection.url,
       songs,
       trackCount: songs.length,

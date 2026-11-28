@@ -32,7 +32,10 @@ type CollectionInput = z.input<typeof Collection>;
 type ResourceInput = z.input<typeof Resource>;
 /** Provenance shared by every record of one response; each record adds its own contentHash. */
 type BaseProvenance = Omit<TrackInput["provenance"], "contentHash">;
-type TrackFields = Pick<TrackInput, "title" | "artist" | "durationSec" | "publishedAt">;
+type TrackFields = Pick<
+  TrackInput,
+  "title" | "artist" | "durationSec" | "publishedAt" | "artworkUrl"
+>;
 
 function failure(kind: ScrapeError["kind"], message: string, url: URL): ScrapeError {
   return { kind, message, provider: ID, url: redactUrl(url) };
@@ -54,6 +57,13 @@ function apiUrl(ref: MusicBrainzRef): URL {
   return new URL(
     `https://${HOST}/ws/2/${ref.entity}/${ref.mbid}?inc=${INCLUDES[ref.entity]}&fmt=json`,
   );
+}
+
+/** Front cover from the Cover Art Archive (MetaBrainz), when the release declares one. 500 px thumbnail. */
+function coverUrl(release: ApiRelease): string | null {
+  return release["cover-art-archive"]?.front === true
+    ? `https://coverartarchive.org/release/${release.id}/front-500`
+    : null;
 }
 
 function pageUrl(entity: MusicBrainzRef["entity"], mbid: string): string {
@@ -97,7 +107,6 @@ function track(
     license: null,
     collection,
     tags: [],
-    artworkUrl: null,
     downloadable: false,
     description: null,
   };
@@ -114,12 +123,15 @@ function fromRecording(recording: ApiRecording, provenance: BaseProvenance): Res
     artist: artistName(recording["artist-credit"]),
     durationSec: durationSec(recording.length),
     publishedAt: fullDate(recording["first-release-date"]),
+    // A recording link has no release, so no cover to take.
+    artworkUrl: null,
   };
   return { kind: "track", track: track(recording, fields, null, provenance) };
 }
 
 function fromRelease(release: ApiRelease, provenance: BaseProvenance): ResourceInput {
   const publishedAt = fullDate(release.date);
+  const artworkUrl = coverUrl(release);
   const items = release.media
     .flatMap((medium) => medium.tracks ?? [])
     .map((item, index) => {
@@ -128,6 +140,7 @@ function fromRelease(release: ApiRelease, provenance: BaseProvenance): ResourceI
         artist: artistName(item["artist-credit"] ?? item.recording["artist-credit"]),
         durationSec: durationSec(item.length ?? item.recording.length),
         publishedAt,
+        artworkUrl,
       };
       return track(item.recording, fields, { id: release.id, position: index + 1 }, provenance);
     });

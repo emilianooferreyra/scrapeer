@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   // @scrapeer/core ships TypeScript source; Next compiles it with the app.
   transpilePackages: ['@scrapeer/core'],
+  // Covers come from the Cover Art Archive, which redirects to archive.org mirrors;
+  // the browser loads them directly instead of through the image optimizer.
+  images: { unoptimized: true },
 };
 
 export default nextConfig;
