@@ -22,9 +22,12 @@ const MEDIA_TYPES: Readonly<Record<ExportFormat, string>> = {
 
 /** Characters a file name cannot hold on common systems. */
 const RESERVED = new Set(["/", "\\", ":", "*", "?", '"', "<", ">", "|"]);
-/** Control characters (C0, DEL, C1) become "_" too: invisible and hard to type in a shell. */
-const CONTROL = /^\p{Cc}$/u;
-const safeChar = (char: string) => (RESERVED.has(char) || CONTROL.test(char) ? "_" : char);
+/**
+ * Control characters (C0, DEL, C1) become "_" too: invisible and hard to type in a shell.
+ * So do lone surrogates: no file system or URL encoding accepts them.
+ */
+const UNSAFE = /^[\p{Cc}\p{Cs}]$/u;
+const safeChar = (char: string) => (RESERVED.has(char) || UNSAFE.test(char) ? "_" : char);
 
 /** File systems cap a name at 255 bytes; this leaves room for " (id8).json" and margin. */
 const MAX_LABEL_BYTES = 200;
@@ -72,9 +75,19 @@ const asciiChar = (char: string) =>
 export function attachmentHeader(name: string): string {
   const fallback = name.replace(/./gsu, asciiChar);
   // encodeURIComponent leaves ' ( ) * as they are; RFC 8187 attr-char does not allow them.
-  const encoded = encodeURIComponent(name).replace(
+  // encodeURIComponent throws on a lone surrogate, so those become "_" first.
+  const encoded = encodeURIComponent(name.replace(/\p{Cs}/gu, "_")).replace(
     /['()*]/g,
     (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
   );
   return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
+}
+
+/**
+ * Set when a collection has pages not fetched yet: every surface shows it next to the
+ * export, so a partial file is never mistaken for the whole album.
+ */
+export function partialNotice(resource: Resource): string | null {
+  if (resource.kind !== "collection" || resource.page.nextCursor === null) return null;
+  return `only the first ${resource.page.items.length} tracks are included; the source has more pages (not fetched yet).`;
 }

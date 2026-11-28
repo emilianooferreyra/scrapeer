@@ -6,6 +6,7 @@ export {
   EXPORT_FORMATS,
   exportResource,
   isExportFormat,
+  partialNotice,
   type ExportFile,
   type ExportFormat,
 } from "./formats/export";

@@ -5,6 +5,7 @@ import {
   type ExportFormat,
   createScrapeer,
   describeError,
+  partialNotice,
   type Resource,
   type Scrapeer,
   type Track,
@@ -54,6 +55,7 @@ function toPlaylist(resource: Resource): PlaylistWithSongs {
       kind: 'album',
       coverUrl: songs[0]?.imageUrl ?? null,
       sourceUrl: collection.url,
+      notice: partialNotice(resource),
       songs,
       trackCount: songs.length,
       duration: songs.reduce((total, song) => total + song.duration, 0),
@@ -67,6 +69,7 @@ function toPlaylist(resource: Resource): PlaylistWithSongs {
     kind: 'track',
     coverUrl: null,
     sourceUrl: resource.track.url,
+    notice: null,
     songs: [song],
     trackCount: 1,
     duration: song.duration,
@@ -90,7 +93,7 @@ export async function getPlaylists(): Promise<Playlist[]> {
   await connection();
   return [...library.values()]
     .reverse()
-    .map(({ playlist: { songs, trackCount, duration, ...playlist } }) => playlist);
+    .map(({ playlist: { songs, trackCount, duration, notice, ...playlist } }) => playlist);
 }
 
 export async function getPlaylistWithSongs(id: string): Promise<PlaylistWithSongs | null> {

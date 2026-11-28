@@ -1,6 +1,12 @@
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { describeError, exportResource, isExportFormat, type Scrapeer } from "../../service";
+import {
+  describeError,
+  exportResource,
+  isExportFormat,
+  partialNotice,
+  type Scrapeer,
+} from "../../service";
 
 /** Where the CLI writes; `main.ts` passes the process streams and the disk, tests pass fakes. */
 export type Io = {
@@ -79,11 +85,8 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
   }
   const { value } = result;
   const { name, text } = exportResource(value, values.format);
-  if (value.kind === "collection" && value.page.nextCursor !== null) {
-    io.stderr(
-      `warning: only the first ${value.page.items.length} tracks are included; the source has more pages (not fetched yet).\n`,
-    );
-  }
+  const notice = partialNotice(value);
+  if (notice !== null) io.stderr(`warning: ${notice}\n`);
   if (values.stdout) {
     io.stdout(text);
     return 0;

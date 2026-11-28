@@ -71,6 +71,11 @@ export default async function PlaylistPage({
               MusicBrainz
             </a>
           </p>
+          {playlist.notice ? (
+            <p role="status" className="text-xs sm:text-sm text-amber-400">
+              Export: {playlist.notice}
+            </p>
+          ) : null}
         </div>
       </div>
 
