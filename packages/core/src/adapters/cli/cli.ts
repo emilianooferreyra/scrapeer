@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { exportResource, isExportFormat, type ScrapeError, type Scrapeer } from "../../service";
+import { describeError, exportResource, isExportFormat, type Scrapeer } from "../../service";
 
 /** Where the CLI writes; `main.ts` passes the process streams and the disk, tests pass fakes. */
 export type Io = {
@@ -25,16 +25,6 @@ Options:
 
 Exit codes: 0 done, 1 the link could not be resolved or saved, 2 wrong usage.
 `;
-
-/** One line an LLM or a person can act on, e.g. "rate_limited: ... provider=x retryAfter=12s". */
-function describe(error: ScrapeError): string {
-  const details = [
-    error.provider === undefined ? null : `provider=${error.provider}`,
-    error.retryAfterSec === undefined ? null : `retryAfter=${error.retryAfterSec}s`,
-    error.url === undefined ? null : `url=${error.url}`,
-  ].filter((detail) => detail !== null);
-  return [`${error.kind}: ${error.message}`, ...details].join(" ");
-}
 
 function usageError(io: Io, problem: string): number {
   io.stderr(`scrapeer: ${problem}\n\n${USAGE}`);
@@ -84,7 +74,7 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
     return 1;
   }
   if (!result.ok) {
-    io.stderr(`${describe(result.error)}\n`);
+    io.stderr(`${describeError(result.error)}\n`);
     return 1;
   }
   const { value } = result;

@@ -4,6 +4,7 @@ import {
   type ExportFile,
   type ExportFormat,
   createScrapeer,
+  describeError,
   type Resource,
   type Scrapeer,
   type Track,
@@ -77,7 +78,8 @@ export type ResolveOutcome = { ok: true; id: string } | { ok: false; message: st
 /** Resolves a pasted link through scrapeer and adds it to the library. */
 export async function resolveLink(input: string): Promise<ResolveOutcome> {
   const result = await scrapeer.resolve(input);
-  if (!result.ok) return { ok: false, message: result.error.message };
+  // The same line the CLI prints, so a failure reads the same on both surfaces.
+  if (!result.ok) return { ok: false, message: describeError(result.error) };
   const playlist = toPlaylist(result.value);
   // The resource is kept too: exports come from it, not from the rows the player shows.
   library.set(playlist.id, { playlist, resource: result.value });

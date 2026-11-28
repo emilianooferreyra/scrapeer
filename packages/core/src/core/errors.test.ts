@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isRetryable, ScrapeError, SCRAPE_ERROR_KINDS } from "./errors";
+import { isRetryable, ScrapeError, SCRAPE_ERROR_KINDS, describeError } from "./errors";
 
 const RETRYABLE = new Set(["rate_limited", "upstream_error", "timeout", "network_error"]);
 
@@ -31,5 +31,27 @@ describe("ScrapeError", () => {
 
   it("rejects an empty message", () => {
     expect(ScrapeError.safeParse({ kind: "not_found", message: "" }).success).toBe(false);
+  });
+});
+
+describe("describeError", () => {
+  it("is kind and message alone when nothing else is known", () => {
+    expect(describeError({ kind: "invalid_input", message: "That is not a link." })).toBe(
+      "invalid_input: That is not a link.",
+    );
+  });
+
+  it("adds provider, retryAfter and url, in that order", () => {
+    expect(
+      describeError({
+        kind: "rate_limited",
+        message: "MusicBrainz is busy.",
+        url: "https://musicbrainz.org/release/x",
+        retryAfterSec: 12,
+        provider: "musicbrainz",
+      }),
+    ).toBe(
+      "rate_limited: MusicBrainz is busy. provider=musicbrainz retryAfter=12s url=https://musicbrainz.org/release/x",
+    );
   });
 });

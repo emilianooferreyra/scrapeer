@@ -18,7 +18,7 @@ export {
   type ExportFormat,
 } from "./formats/export";
 export type { Resource } from "./core/schema";
-export type { ScrapeError } from "./core/errors";
+export { describeError, type ScrapeError } from "./core/errors";
 
 /** Identifies scrapeer and a contact on every request (ADR-017); never a browser string. */
 export const USER_AGENT = "scrapeer/0.0.0 ( https://github.com/emilianooferreyra/scrapeer )";
