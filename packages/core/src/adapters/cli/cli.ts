@@ -1,9 +1,6 @@
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import type { ScrapeError } from "../../core/errors";
-import { resourceToCsv } from "../../formats/csv";
-import type { Resource } from "../../core/schema";
-import type { Scrapeer } from "../../service";
+import { resourceToCsv, type Resource, type ScrapeError, type Scrapeer } from "../../service";
 
 /** Where the CLI writes; `main.ts` passes the process streams and the disk, tests pass fakes. */
 export type Io = {
@@ -44,18 +41,34 @@ function describe(error: ScrapeError): string {
   return [`${error.kind}: ${error.message}`, ...details].join(" ");
 }
 
-/** Characters a file name cannot hold on common systems; control characters become "_" too. */
+/** Characters a file name cannot hold on common systems. */
 const RESERVED = new Set(["/", "\\", ":", "*", "?", '"', "<", ">", "|"]);
-const safeChar = (char: string) => (RESERVED.has(char) || char.charCodeAt(0) < 32 ? "_" : char);
+/** Control characters (C0, DEL, C1) become "_" too: invisible and hard to type in a shell. */
+const CONTROL = /^\p{Cc}$/u;
+const safeChar = (char: string) => (RESERVED.has(char) || CONTROL.test(char) ? "_" : char);
+
+/** File systems cap a name at 255 bytes; this leaves room for " (id8).json" and margin. */
+const MAX_LABEL_BYTES = 200;
+const encoder = new TextEncoder();
+
+/** Cuts at whole code points, so a CJK character or an emoji is never split. */
+function truncateUtf8(text: string, maxBytes: number): string {
+  let out = "";
+  let bytes = 0;
+  for (const char of text) {
+    bytes += encoder.encode(char).length;
+    if (bytes > maxBytes) break;
+    out += char;
+  }
+  return out;
+}
 
 /** "Artist - Title (id8).ext": readable, stable for the same link, unique across editions. */
 function fileName(resource: Resource, extension: string): string {
   const { artist, title, id } = resource.kind === "track" ? resource.track : resource.collection;
   const label = artist === null ? title : `${artist} - ${title}`;
-  const safe = label
-    .replace(/./gsu, safeChar)
-    .replace(/^[.\s]+|[.\s]+$/g, "")
-    .slice(0, 150);
+  const cleaned = label.replace(/./gsu, safeChar).replace(/^[.\s]+|[.\s]+$/g, "");
+  const safe = truncateUtf8(cleaned, MAX_LABEL_BYTES).trimEnd() || "untitled";
   return `${safe} (${id.slice(0, 8)}).${extension}`;
 }
 
@@ -94,7 +107,7 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
   if (link === undefined || rest.length !== 1) return usageError(io, "resolve needs one link");
   if (!isFormat(values.format)) return usageError(io, `unknown format "${values.format}"`);
   if (values.stdout && values.out !== undefined) {
-    return usageError(io, "use either --out or --stdout, not both (--out and --stdout)");
+    return usageError(io, "--out and --stdout cannot be used together");
   }
 
   let result;
@@ -114,6 +127,12 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
     values.format === "csv"
       ? resourceToCsv(result.value)
       : `${JSON.stringify(result.value, null, 2)}\n`;
+  const { value } = result;
+  if (value.kind === "collection" && value.page.nextCursor !== null) {
+    io.stderr(
+      `warning: only the first ${value.page.items.length} tracks are included; the source has more pages (not fetched yet).\n`,
+    );
+  }
   if (values.stdout) {
     io.stdout(text);
     return 0;
@@ -129,6 +148,7 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
     io.stderr(`scrapeer: could not write ${path} (${code})\n`);
     return 1;
   }
-  io.stdout(`Saved ${path}\n`);
+  // Status goes to stderr: stdout carries data only, so --stdout output stays pipeable.
+  io.stderr(`Saved ${path}\n`);
   return 0;
 }
