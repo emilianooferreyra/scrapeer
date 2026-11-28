@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import type { ScrapeError } from "../../core/errors";
+import { resourceToCsv } from "../../formats/csv";
 import type { Scrapeer } from "../../service";
 
 /** Where the CLI writes; `main.ts` passes the process streams, tests pass strings. */
@@ -9,16 +10,16 @@ export type Io = {
 };
 
 export const USAGE = `Usage:
-  scrapeer resolve <url> [--format json]   Resolve a link into a track or an album (JSON)
+  scrapeer resolve <url> [--format json|csv]   Resolve a link into a track or an album
 
 Options:
-  --format <json>   Output format (default: json)
+  --format <json|csv>   json: the full resource (default); csv: one row per track, album order
   -h, --help        Show this help
 
 Exit codes: 0 done, 1 the link could not be resolved, 2 wrong usage.
 `;
 
-const FORMATS = ["json"] as const;
+const FORMATS = ["json", "csv"] as const;
 type Format = (typeof FORMATS)[number];
 
 const isFormat = (value: string): value is Format => FORMATS.some((format) => format === value);
@@ -79,6 +80,10 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
     io.stderr(`${describe(result.error)}\n`);
     return 1;
   }
-  io.stdout(`${JSON.stringify(result.value, null, 2)}\n`);
+  io.stdout(
+    values.format === "csv"
+      ? resourceToCsv(result.value)
+      : `${JSON.stringify(result.value, null, 2)}\n`,
+  );
   return 0;
 }

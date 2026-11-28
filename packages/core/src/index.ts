@@ -1,5 +1,6 @@
 export const TOOL_NAME = "scrapeer";
 
+export { CSV_COLUMNS, resourceToCsv } from "./formats/csv";
 export {
   createScrapeer,
   USER_AGENT,

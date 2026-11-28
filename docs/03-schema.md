@@ -234,13 +234,15 @@ Los números son ilustrativos.
 
 Las columnas del CSV son los campos del JSON **aplanados con punto**, en orden fijo: `license.code`, `provenance.fetchedAt`.
 
-| Caso                                      | CSV                                                        |
-| ----------------------------------------- | ---------------------------------------------------------- |
-| Objeto anidado                            | Una columna por campo hoja                                 |
-| Array (`tags`)                            | JSON en la celda                                           |
-| `null`                                    | Celda vacía                                                |
-| String vacío                              | No existe: se normaliza a `null`                           |
-| Celda que empieza con `=`, `+`, `-` o `@` | Prefijo `'` para evitar inyección de fórmulas en planillas |
+| Caso                                               | CSV                                                                |
+| -------------------------------------------------- | ------------------------------------------------------------------ |
+| Objeto anidado                                     | Una columna por campo hoja                                         |
+| Array (`tags`)                                     | JSON en la celda                                                   |
+| `null`                                             | Celda vacía                                                        |
+| String vacío                                       | No existe: se normaliza a `null`                                   |
+| Celda que empieza con `=`, `+`, `-`, `@`, tab o CR | Prefijo `'` para evitar inyección de fórmulas en planillas (OWASP) |
+
+Las celdas siguen RFC 4180 (comillas dobles cuando hay `,`, `"` o saltos de línea) y cada línea termina en CRLF. Un álbum sale en el orden de `collection.position`.
 
 JSONL es la referencia; el CSV es una vista para personas.
 

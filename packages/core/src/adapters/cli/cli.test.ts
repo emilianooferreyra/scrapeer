@@ -4,6 +4,7 @@ import type { ScrapeError } from "../../core/errors";
 import { err, ok, type Result } from "../../core/result";
 import { Resource } from "../../core/schema";
 import { createScrapeer, type Scrapeer } from "../../service";
+import { resourceToCsv } from "../../formats/csv";
 import { run } from "./cli";
 
 const LINK = "https://musicbrainz.org/recording/26244520-0e1d-4d42-b101-ce6b83299d33";
@@ -57,6 +58,12 @@ describe("scrapeer CLI", () => {
     const out = await cli(["resolve", LINK, "--format", "json"]);
     expect(out.code).toBe(0);
     expect(JSON.parse(out.stdout)).toStrictEqual(JSON.parse((await cli(["resolve", LINK])).stdout));
+  });
+
+  it("resolve <url> --format csv prints the CSV view and exits 0", async () => {
+    const out = await cli(["resolve", LINK, "--format", "csv"]);
+    expect(out).toMatchObject({ code: 0, stderr: "", stdout: resourceToCsv(track) });
+    expect(out.stdout.startsWith("schemaVersion,provider,id,url,")).toBe(true);
   });
 
   it("prints a scrape error on stderr as one line and exits 1", async () => {
