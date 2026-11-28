@@ -14,3 +14,9 @@ export {
   type HttpTransportOptions,
 } from "./core/transport/http";
 export { musicbrainz } from "./providers/musicbrainz/provider";
+export {
+  findYouTubeVideo,
+  YOUTUBE_API,
+  type TrackQuery,
+  type YouTubeMatch,
+} from "./providers/youtube/search";
