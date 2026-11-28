@@ -3,22 +3,8 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   cacheComponents: true,
   reactCompiler: true,
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '5mb',
-    },
-  },
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'ijlyviwppydvzsmm.public.blob.vercel-storage.com',
-        port: '',
-        pathname: '/**',
-        search: '',
-      },
-    ],
-  },
+  // @scrapeer/core ships TypeScript source; Next compiles it with the app.
+  transpilePackages: ['@scrapeer/core'],
 };
 
 export default nextConfig;

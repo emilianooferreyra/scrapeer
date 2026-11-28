@@ -1,22 +1,17 @@
 'use client';
 
 import { usePlayback } from '@/app/playback-context';
-import { PlaylistWithSongs, Song } from '@/lib/db/types';
+import type { Song } from '@/lib/types';
 import { formatDuration, highlightText } from '@/lib/utils';
 import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Play, Pause, Plus } from 'lucide-react';
+import { MoreHorizontal, Play, Pause } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { usePlaylist } from '@/app/hooks/use-playlist';
-import { addToPlaylistAction } from '@/app/actions';
 import Image from 'next/image';
 
 function TrackRow({
@@ -40,11 +35,9 @@ function TrackRow({
     setActivePanel,
     handleKeyNavigation,
   } = usePlayback();
-  let { playlists } = usePlaylist();
 
   let [isFocused, setIsFocused] = useState(false);
-  let isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
-  let isCurrentTrack = currentTrack?.name === track.name;
+  let isCurrentTrack = currentTrack?.id === track.id;
 
   function onClickTrackRow(e: React.MouseEvent) {
     e.preventDefault();
@@ -98,7 +91,7 @@ function TrackRow({
           <div className="relative size-5 mr-2">
             <Image
               src={track.imageUrl || '/placeholder.svg'}
-              alt={`${track.album} cover`}
+              alt={`${track.album || track.name} cover`}
               fill
               className="object-cover"
             />
@@ -115,7 +108,7 @@ function TrackRow({
         {highlightText(track.artist, query)}
       </td>
       <td className="py-[2px] px-2 hidden md:table-cell text-[#d1d5db]">
-        {highlightText(track.album!, query)}
+        {highlightText(track.album, query)}
       </td>
       <td className="py-[2px] px-2 tabular-nums text-[#d1d5db]">
         {formatDuration(track.duration)}
@@ -125,7 +118,6 @@ function TrackRow({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                disabled={isProduction}
                 variant="ghost"
                 size="icon"
                 className="h-5 w-5 text-gray-400 hover:text-white focus:text-white"
@@ -158,26 +150,6 @@ function TrackRow({
                   </>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="text-xs">
-                  <Plus className="mr-2 size-3" />
-                  Add to Playlist
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-48">
-                  {playlists.map((playlist) => (
-                    <DropdownMenuItem
-                      className="text-xs"
-                      key={playlist.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToPlaylistAction(playlist.id, track.id);
-                      }}
-                    >
-                      {playlist.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -189,13 +161,7 @@ function TrackRow({
   );
 }
 
-export function TrackTable({
-  playlist,
-  query,
-}: {
-  playlist: PlaylistWithSongs;
-  query?: string;
-}) {
+export function TrackTable({ songs, query }: { songs: Song[]; query?: string }) {
   let tableRef = useRef<HTMLTableElement>(null);
   let { registerPanelRef, setActivePanel, setPlaylist } = usePlayback();
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
@@ -205,8 +171,8 @@ export function TrackTable({
   }, [registerPanelRef]);
 
   useEffect(() => {
-    setPlaylist(playlist.songs);
-  }, [playlist.songs, setPlaylist]);
+    setPlaylist(songs);
+  }, [songs, setPlaylist]);
 
   return (
     <table
@@ -225,7 +191,7 @@ export function TrackTable({
         </tr>
       </thead>
       <tbody className="mt-[1px]">
-        {playlist.songs.map((track: Song, index: number) => (
+        {songs.map((track: Song, index: number) => (
           <TrackRow
             key={track.id}
             track={track}

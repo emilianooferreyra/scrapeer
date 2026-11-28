@@ -249,7 +249,9 @@ export function PlaybackControls() {
         artist: currentTrack.artist,
         album: currentTrack.album || undefined,
         artwork: [
-          { src: currentTrack.imageUrl!, sizes: '512x512', type: 'image/jpeg' },
+          ...(currentTrack.imageUrl
+            ? [{ src: currentTrack.imageUrl, sizes: '512x512', type: 'image/jpeg' }]
+            : []),
         ],
       });
 

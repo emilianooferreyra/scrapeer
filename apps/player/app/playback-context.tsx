@@ -9,7 +9,7 @@ import {
   useRef,
   useCallback,
 } from 'react';
-import { Song } from '@/lib/db/types';
+import type { Song } from '@/lib/types';
 
 type Panel = 'sidebar' | 'tracklist';
 
@@ -120,7 +120,8 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     useKeyboardNavigation();
 
   const togglePlayPause = useCallback(() => {
-    if (audioRef.current) {
+    // Nothing to play until a track has audio (no source gives it yet).
+    if (audioRef.current && currentTrack?.audioUrl) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
@@ -128,15 +129,16 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       }
       setIsPlaying(!isPlaying);
     }
-  }, [isPlaying]);
+  }, [isPlaying, currentTrack]);
 
   const playTrack = useCallback(
     (track: Song) => {
       setCurrentTrack(track);
-      setIsPlaying(true);
       setCurrentTime(0);
-      if (audioRef.current) {
-        audioRef.current.src = getAudioSrc(track.audioUrl as string);
+      // Selecting a track without audio shows its data but does not start playback.
+      setIsPlaying(track.audioUrl !== null);
+      if (audioRef.current && track.audioUrl) {
+        audioRef.current.src = track.audioUrl;
         audioRef.current.play();
       }
       setActivePanel('tracklist');
@@ -164,14 +166,6 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       playTrack(playlist[previousIndex]);
     }
   }, [currentTrack, playlist, playTrack]);
-
-  const getAudioSrc = (url: string) => {
-    if (url.startsWith('file://')) {
-      const filename = url.split('/').pop();
-      return `/api/audio/${encodeURIComponent(filename || '')}`;
-    }
-    return url;
-  };
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
