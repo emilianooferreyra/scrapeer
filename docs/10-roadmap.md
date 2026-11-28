@@ -21,9 +21,9 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 **Objetivo:** atravesar todas las capas con lo mínimo y sin credenciales.
 
 - [x] `Track`, `Collection`, `License`, `Result` y `ScrapeError`
-- [ ] Transport HTTP: allowlist por salto, timeout, rate limit y jitter, `robots.txt` antes del primer request según el tipo de acceso (ADR-024)
-- [ ] MusicBrainz `resolve` de recording y release, con fixtures
-- [ ] CLI `resolve <url>` → JSON
+- [x] Transport HTTP: allowlist por salto, timeout, rate limit y jitter, `robots.txt` antes del primer request según el tipo de acceso (ADR-024)
+- [x] MusicBrainz `resolve` de recording y release, con fixtures
+- [x] CLI `resolve <url>` → JSON (`pnpm scrapeer resolve <url>`)
 - [ ] `resolve --format csv` con el orden del álbum (el `export` con filtros llega en Fase 4)
 
 **Done:** el link real de un álbum de MusicBrainz produce un CSV ordenado; `pnpm typecheck && pnpm test` en verde.

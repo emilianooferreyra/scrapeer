@@ -150,10 +150,11 @@ Orden **fijo**. Solo se baja un escalón si el anterior falla, y cada caída se 
 ```
 scrapeer/
 ├─ src/
-│  ├─ core/        # schema, Result, errores, rate limit, ledger, transport, servicio
+│  ├─ core/        # schema, Result, errores, rate limit, ledger, transport
 │  ├─ providers/   # musicbrainz · listenbrainz · youtube
+│  ├─ service.ts   # capa de servicio: elige el provider y hace resolve (importa providers, por eso no vive en core/)
 │  └─ adapters/
-│     ├─ cli/      # commander
+│     ├─ cli/      # node:util parseArgs; commander cuando haya varios comandos
 │     ├─ ui/       # Hono local + estáticos (Fase 2)
 │     └─ mcp/      # stdio (Fase 5)
 ├─ fixtures/       # respuestas grabadas, por provider
@@ -169,23 +170,23 @@ scrapeer/
 
 El stack completo, con motivos y descartes, está en [ADR-023](00-decisiones.md#adr-023--stack-técnico-de-v10). Resumen:
 
-| Necesidad       | Elección                                           |
-| --------------- | -------------------------------------------------- |
-| Runtime         | Node 26 LTS (mínimo 24.15)                         |
-| HTTP saliente   | `fetch` nativo / undici                            |
-| HTTP local (UI) | Hono                                               |
-| Validación      | `zod`                                              |
-| Persistencia    | `node:sqlite`                                      |
-| Logs            | `pino`                                             |
-| CLI             | `commander`                                        |
-| Build           | `tsdown`                                           |
-| Tests           | `vitest`                                           |
-| Lint y formato  | Oxlint + Oxfmt                                     |
-| UI (Fase 2)     | React + TanStack Table + Tailwind, o Vercel UI SDK |
-| MCP (Fase 5)    | `@modelcontextprotocol/sdk`                        |
-| HTML (v2)       | `cheerio`                                          |
-| Navegador (v2)  | `playwright`                                       |
-| Audio (v2)      | `ffmpeg` + `fpcalc` (binarios del sistema)         |
+| Necesidad       | Elección                                                                             |
+| --------------- | ------------------------------------------------------------------------------------ |
+| Runtime         | Node 26 LTS (mínimo 24.15)                                                           |
+| HTTP saliente   | `fetch` nativo / undici                                                              |
+| HTTP local (UI) | Hono                                                                                 |
+| Validación      | `zod`                                                                                |
+| Persistencia    | `node:sqlite`                                                                        |
+| Logs            | `pino`                                                                               |
+| CLI             | `node:util` `parseArgs` por ahora; `commander` (ADR-023) cuando haya varios comandos |
+| Build           | `tsdown`                                                                             |
+| Tests           | `vitest`                                                                             |
+| Lint y formato  | Oxlint + Oxfmt                                                                       |
+| UI (Fase 2)     | React + TanStack Table + Tailwind, o Vercel UI SDK                                   |
+| MCP (Fase 5)    | `@modelcontextprotocol/sdk`                                                          |
+| HTML (v2)       | `cheerio`                                                                            |
+| Navegador (v2)  | `playwright`                                                                         |
+| Audio (v2)      | `ffmpeg` + `fpcalc` (binarios del sistema)                                           |
 
 ---
 

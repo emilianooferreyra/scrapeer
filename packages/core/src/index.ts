@@ -1,7 +1,12 @@
 export const TOOL_NAME = "scrapeer";
 
-/** Identifies scrapeer and a contact on every request (ADR-017); never a browser string. */
-export const USER_AGENT = "scrapeer/0.0.0 ( https://github.com/emilianooferreyra/scrapeer )";
+export {
+  createScrapeer,
+  USER_AGENT,
+  type ResolveOptions,
+  type Scrapeer,
+  type ScrapeerOptions,
+} from "./service";
 
 export type { ScrapeError, ScrapeErrorKind } from "./core/errors";
 export type { Capability, Ctx, Provider, ProviderPolicy } from "./core/provider";
