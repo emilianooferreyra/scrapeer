@@ -68,6 +68,9 @@ function TrackRow({
     <tr
       className={`group cursor-pointer hover:bg-[#1A1A1A] select-none relative ${
         isCurrentTrack ? 'bg-[#1A1A1A]' : ''
+      } ${
+        // An outline on the row itself: a <div> inside <tr> is invalid HTML and breaks hydration.
+        isSelected || isFocused ? 'outline outline-1 -outline-offset-1 outline-[#1e3a8a]' : ''
       }`}
       tabIndex={0}
       onClick={onClickTrackRow}
@@ -154,9 +157,6 @@ function TrackRow({
           </DropdownMenu>
         </div>
       </td>
-      {(isSelected || isFocused) && (
-        <div className="absolute inset-0 border border-[#1e3a8a] pointer-events-none" />
-      )}
     </tr>
   );
 }
