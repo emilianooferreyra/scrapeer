@@ -2,6 +2,14 @@ export const TOOL_NAME = "scrapeer";
 
 export { CSV_COLUMNS, resourceToCsv } from "./formats/csv";
 export {
+  attachmentHeader,
+  EXPORT_FORMATS,
+  exportResource,
+  isExportFormat,
+  type ExportFile,
+  type ExportFormat,
+} from "./formats/export";
+export {
   createScrapeer,
   USER_AGENT,
   type ResolveOptions,

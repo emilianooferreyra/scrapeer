@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { resourceToCsv, type Resource, type ScrapeError, type Scrapeer } from "../../service";
+import { exportResource, isExportFormat, type ScrapeError, type Scrapeer } from "../../service";
 
 /** Where the CLI writes; `main.ts` passes the process streams and the disk, tests pass fakes. */
 export type Io = {
@@ -26,11 +26,6 @@ Options:
 Exit codes: 0 done, 1 the link could not be resolved or saved, 2 wrong usage.
 `;
 
-const FORMATS = ["json", "csv"] as const;
-type Format = (typeof FORMATS)[number];
-
-const isFormat = (value: string): value is Format => FORMATS.some((format) => format === value);
-
 /** One line an LLM or a person can act on, e.g. "rate_limited: ... provider=x retryAfter=12s". */
 function describe(error: ScrapeError): string {
   const details = [
@@ -39,37 +34,6 @@ function describe(error: ScrapeError): string {
     error.url === undefined ? null : `url=${error.url}`,
   ].filter((detail) => detail !== null);
   return [`${error.kind}: ${error.message}`, ...details].join(" ");
-}
-
-/** Characters a file name cannot hold on common systems. */
-const RESERVED = new Set(["/", "\\", ":", "*", "?", '"', "<", ">", "|"]);
-/** Control characters (C0, DEL, C1) become "_" too: invisible and hard to type in a shell. */
-const CONTROL = /^\p{Cc}$/u;
-const safeChar = (char: string) => (RESERVED.has(char) || CONTROL.test(char) ? "_" : char);
-
-/** File systems cap a name at 255 bytes; this leaves room for " (id8).json" and margin. */
-const MAX_LABEL_BYTES = 200;
-const encoder = new TextEncoder();
-
-/** Cuts at whole code points, so a CJK character or an emoji is never split. */
-function truncateUtf8(text: string, maxBytes: number): string {
-  let out = "";
-  let bytes = 0;
-  for (const char of text) {
-    bytes += encoder.encode(char).length;
-    if (bytes > maxBytes) break;
-    out += char;
-  }
-  return out;
-}
-
-/** "Artist - Title (id8).ext": readable, stable for the same link, unique across editions. */
-function fileName(resource: Resource, extension: string): string {
-  const { artist, title, id } = resource.kind === "track" ? resource.track : resource.collection;
-  const label = artist === null ? title : `${artist} - ${title}`;
-  const cleaned = label.replace(/./gsu, safeChar).replace(/^[.\s]+|[.\s]+$/g, "");
-  const safe = truncateUtf8(cleaned, MAX_LABEL_BYTES).trimEnd() || "untitled";
-  return `${safe} (${id.slice(0, 8)}).${extension}`;
 }
 
 function usageError(io: Io, problem: string): number {
@@ -105,7 +69,7 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
   if (command !== "resolve") return usageError(io, `unknown command "${command}"`);
   const [link] = rest;
   if (link === undefined || rest.length !== 1) return usageError(io, "resolve needs one link");
-  if (!isFormat(values.format)) return usageError(io, `unknown format "${values.format}"`);
+  if (!isExportFormat(values.format)) return usageError(io, `unknown format "${values.format}"`);
   if (values.stdout && values.out !== undefined) {
     return usageError(io, "--out and --stdout cannot be used together");
   }
@@ -123,11 +87,8 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
     io.stderr(`${describe(result.error)}\n`);
     return 1;
   }
-  const text =
-    values.format === "csv"
-      ? resourceToCsv(result.value)
-      : `${JSON.stringify(result.value, null, 2)}\n`;
   const { value } = result;
+  const { name, text } = exportResource(value, values.format);
   if (value.kind === "collection" && value.page.nextCursor !== null) {
     io.stderr(
       `warning: only the first ${value.page.items.length} tracks are included; the source has more pages (not fetched yet).\n`,
@@ -137,7 +98,7 @@ export async function run(argv: readonly string[], io: Io, scrapeer: Scrapeer): 
     io.stdout(text);
     return 0;
   }
-  const path = join(values.out ?? DEFAULT_OUT_DIR, fileName(result.value, values.format));
+  const path = join(values.out ?? DEFAULT_OUT_DIR, name);
   try {
     await io.writeFile(path, text);
   } catch (error) {

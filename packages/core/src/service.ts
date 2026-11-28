@@ -9,6 +9,14 @@ import { musicbrainz } from "./providers/musicbrainz/provider";
 
 /** What adapters need besides `resolve`: they import only from the service (AGENTS.md). */
 export { resourceToCsv } from "./formats/csv";
+export {
+  attachmentHeader,
+  EXPORT_FORMATS,
+  exportResource,
+  isExportFormat,
+  type ExportFile,
+  type ExportFormat,
+} from "./formats/export";
 export type { Resource } from "./core/schema";
 export type { ScrapeError } from "./core/errors";
 

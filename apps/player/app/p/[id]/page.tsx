@@ -44,6 +44,18 @@ export default async function PlaylistPage({
           <Button variant="ghost" size="icon" className="h-7 w-7">
             <Shuffle className="w-4 h-4" />
           </Button>
+          {(['csv', 'json'] as const).map((format) => (
+            <Button
+              key={format}
+              asChild
+              variant="secondary"
+              className="h-7 text-xs bg-[#282828] hover:bg-[#3E3E3E] text-white"
+            >
+              <a href={`/p/${encodeURIComponent(playlist.id)}/export?format=${format}`} download>
+                {format.toUpperCase()}
+              </a>
+            </Button>
+          ))}
         </div>
       </div>
 

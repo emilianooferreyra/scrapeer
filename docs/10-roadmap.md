@@ -32,8 +32,8 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 ## Fase 2 — UI local (el player, ADR-027)
 
 - [x] Capa de servicio extraída (segundo adaptador: el player, ADR-007)
-- [ ] El player escucha solo en `127.0.0.1`
-- [ ] Export CSV y JSON desde la página del álbum ([`07-superficies.md`](07-superficies.md#ui))
+- [x] El player escucha solo en `127.0.0.1`
+- [x] Export CSV y JSON desde la página del álbum ([`07-superficies.md`](07-superficies.md#ui))
 - [ ] Errores visibles en la UI con el mismo texto que la CLI
 
 **Done:** alguien ajeno pega un link de MusicBrainz y descarga el CSV en menos de 60 s. Se graba el GIF.
