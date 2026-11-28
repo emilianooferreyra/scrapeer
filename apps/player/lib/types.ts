@@ -8,8 +8,6 @@ export type Song = {
   /** Seconds; 0 when the source does not know it. */
   duration: number;
   imageUrl: string | null;
-  /** No source gives audio yet (P5); the player shows the data and does not play. */
-  audioUrl: string | null;
   sourceUrl: string;
   isrcs: string[];
 };

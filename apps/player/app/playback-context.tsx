@@ -9,9 +9,20 @@ import {
   useRef,
   useCallback,
 } from 'react';
+import type { YouTubeMatch } from '@scrapeer/core';
+import type { YouTubeAnswer } from '@/app/api/youtube/route';
 import type { Song } from '@/lib/types';
+import { YouTubeMedia } from '@/lib/youtube-media';
 
 type Panel = 'sidebar' | 'tracklist';
+
+/** Where the selected track's audio stands: searched on click, then played on YouTube. */
+export type TrackStatus =
+  | { kind: 'idle' }
+  | { kind: 'searching' }
+  | { kind: 'ready'; match: YouTubeMatch }
+  | { kind: 'not_found' }
+  | { kind: 'error'; message: string };
 
 type PlaybackContextType = {
   isPlaying: boolean;
@@ -25,7 +36,9 @@ type PlaybackContextType = {
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
   setPlaylist: (songs: Song[]) => void;
-  audioRef: React.RefObject<HTMLAudioElement | null>;
+  /** The YouTube player, shaped like the media element the controls expect. */
+  audioRef: React.RefObject<YouTubeMedia | null>;
+  trackStatus: TrackStatus;
   activePanel: Panel;
   setActivePanel: (panel: Panel) => void;
   registerPanelRef: (
@@ -114,36 +127,60 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playlist, setPlaylist] = useState<Song[]>([]);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [trackStatus, setTrackStatus] = useState<TrackStatus>({ kind: 'idle' });
+  const [media] = useState(() => new YouTubeMedia());
+  const audioRef = useRef<YouTubeMedia | null>(media);
+  /** Only the answer for the last clicked track may start playback. */
+  const requestRef = useRef(0);
 
   const { activePanel, setActivePanel, registerPanelRef, handleKeyNavigation } =
     useKeyboardNavigation();
 
   const togglePlayPause = useCallback(() => {
-    // Nothing to play until a track has audio (no source gives it yet).
-    if (audioRef.current && currentTrack?.audioUrl) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+    if (trackStatus.kind !== 'ready') return;
+    if (isPlaying) {
+      media.pause();
+    } else {
+      media.play();
     }
-  }, [isPlaying, currentTrack]);
+  }, [isPlaying, trackStatus, media]);
 
   const playTrack = useCallback(
     (track: Song) => {
+      const request = ++requestRef.current;
       setCurrentTrack(track);
       setCurrentTime(0);
-      // Selecting a track without audio shows its data but does not start playback.
-      setIsPlaying(track.audioUrl !== null);
-      if (audioRef.current && track.audioUrl) {
-        audioRef.current.src = track.audioUrl;
-        audioRef.current.play();
-      }
+      setDuration(0);
       setActivePanel('tracklist');
+      media.pause();
+      setTrackStatus({ kind: 'searching' });
+
+      const params = new URLSearchParams({
+        id: track.id,
+        artist: track.artist,
+        title: track.name,
+        duration: String(track.duration),
+      });
+      fetch(`/api/youtube?${params}`)
+        .then((response) => response.json() as Promise<YouTubeAnswer>)
+        .then((answer) => {
+          if (request !== requestRef.current) return;
+          if ('error' in answer) {
+            setTrackStatus({ kind: 'error', message: answer.error });
+          } else if (answer.match === null) {
+            setTrackStatus({ kind: 'not_found' });
+          } else {
+            setTrackStatus({ kind: 'ready', match: answer.match });
+            media.load(answer.match.videoId);
+          }
+        })
+        .catch(() => {
+          if (request === requestRef.current) {
+            setTrackStatus({ kind: 'error', message: 'Could not reach the player server.' });
+          }
+        });
     },
-    [setActivePanel]
+    [setActivePanel, media]
   );
 
   const playNextTrack = useCallback(() => {
@@ -166,6 +203,28 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       playTrack(playlist[previousIndex]);
     }
   }, [currentTrack, playlist, playTrack]);
+
+  // The player, not the buttons, says whether it is playing; a finished track moves on.
+  const playNextRef = useRef(playNextTrack);
+  useEffect(() => {
+    playNextRef.current = playNextTrack;
+  }, [playNextTrack]);
+  useEffect(() => {
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onEnded = () => {
+      setIsPlaying(false);
+      playNextRef.current();
+    };
+    media.addEventListener('play', onPlay);
+    media.addEventListener('pause', onPause);
+    media.addEventListener('ended', onEnded);
+    return () => {
+      media.removeEventListener('play', onPlay);
+      media.removeEventListener('pause', onPause);
+      media.removeEventListener('ended', onEnded);
+    };
+  }, [media]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -200,6 +259,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         setDuration,
         setPlaylist,
         audioRef,
+        trackStatus,
         activePanel,
         setActivePanel,
         registerPanelRef,

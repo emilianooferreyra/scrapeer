@@ -34,7 +34,6 @@ function toSong(track: Track, album: string, index: number): Song {
     album,
     duration: track.durationSec ?? 0,
     imageUrl: track.artworkUrl,
-    audioUrl: null,
     sourceUrl: track.url,
     isrcs: track.isrcs,
   };
