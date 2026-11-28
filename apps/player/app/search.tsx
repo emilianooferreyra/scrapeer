@@ -3,22 +3,26 @@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 
-export function SearchInput(props: { value?: string }) {
+/**
+ * Filters All Tracks. It only navigates when the user types or clears it: navigating on
+ * mount would pull every page (an album, a just-resolved link) back to All Tracks.
+ */
+export function SearchInput() {
   let router = useRouter();
-  let [value, setValue] = useState(props.value ?? '');
-  let inputRef = useRef<HTMLInputElement>(null);
+  let searchParams = useSearchParams();
+  let [value, setValue] = useState(searchParams.get('q') ?? '');
 
-  useEffect(() => {
-    router.replace(`/?q=${encodeURIComponent(value)}`);
-  }, [router, value]);
+  function update(next: string) {
+    setValue(next);
+    router.replace(next ? `/?q=${encodeURIComponent(next)}` : '/');
+  }
 
   return (
     <div className="relative">
       <Input
-        ref={inputRef}
         type="search"
         className="mb-4 bg-[#1A1A1A] border-[#333] text-xs h-8 focus-visible:ring-0 pr-8 [&::-webkit-search-cancel-button]:appearance-none"
         style={{
@@ -28,9 +32,7 @@ export function SearchInput(props: { value?: string }) {
         }}
         placeholder="Search"
         value={value}
-        onChange={(e) => {
-          setValue(e.currentTarget.value);
-        }}
+        onChange={(e) => update(e.currentTarget.value)}
       />
       {value ? (
         <Button
@@ -38,7 +40,7 @@ export function SearchInput(props: { value?: string }) {
           variant="ghost"
           size="icon"
           className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
-          onClick={() => setValue('')}
+          onClick={() => update('')}
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Clear search</span>

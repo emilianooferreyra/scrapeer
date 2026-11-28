@@ -26,9 +26,10 @@ const transport = createHttpTransport({
   limits: { 'musicbrainz.org': { capacity: 1, refillPerSec: 1, jitterMs: 250 } },
 });
 
-function toSong(track: Track, album: string, index: number): Song {
+function toSong(playlistId: string, track: Track, album: string, index: number): Song {
   return {
-    id: `${track.id}:${track.collection?.position ?? index + 1}`,
+    // A recording can appear in several playlists and twice in one album: all three parts keep rows apart.
+    id: `${playlistId}:${track.id}:${track.collection?.position ?? index + 1}`,
     name: track.title,
     artist: track.artist ?? '',
     album,
@@ -42,7 +43,7 @@ function toSong(track: Track, album: string, index: number): Song {
 function toPlaylist(resource: Resource): PlaylistWithSongs {
   if (resource.kind === 'collection') {
     const { collection, page } = resource;
-    const songs = page.items.map((track, i) => toSong(track, collection.title, i));
+    const songs = page.items.map((track, i) => toSong(collection.id, track, collection.title, i));
     return {
       id: collection.id,
       name: collection.title,
@@ -55,7 +56,7 @@ function toPlaylist(resource: Resource): PlaylistWithSongs {
       duration: songs.reduce((total, song) => total + song.duration, 0),
     };
   }
-  const song = toSong(resource.track, '', 0);
+  const song = toSong(resource.track.id, resource.track, '', 0);
   return {
     id: resource.track.id,
     name: resource.track.title,
@@ -110,4 +111,13 @@ export async function getSongs(query?: string): Promise<Song[]> {
   return songs.filter((song) =>
     [song.name, song.artist, song.album].some((field) => field.toLowerCase().includes(needle))
   );
+}
+
+/** A song already in the library; the YouTube search only runs for these. */
+export function findSong(id: string): Song | null {
+  for (const playlist of library.values()) {
+    const song = playlist.songs.find((candidate) => candidate.id === id);
+    if (song) return song;
+  }
+  return null;
 }

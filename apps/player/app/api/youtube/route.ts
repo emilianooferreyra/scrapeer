@@ -7,12 +7,15 @@ import {
   YOUTUBE_API,
   type YouTubeMatch,
 } from '@scrapeer/core';
+import { findSong } from '@/lib/library';
 
 /**
- * Finds the YouTube video for one track, on click. Each search costs 101 of the
- * 10,000 daily quota units, so answers (including "not found") are cached per track
- * for the server session.
+ * Finds the YouTube video for one library song, on click. Each search costs 101 of the
+ * 10,000 daily quota units, so answers (including "not found") are cached per song.
+ * The search uses the library's own artist, title and duration, never the request's,
+ * so a caller cannot spend quota on arbitrary queries or cache a wrong match.
  */
+const CACHE_LIMIT = 500;
 type Cache = Map<string, YouTubeMatch | null>;
 const shared = globalThis as typeof globalThis & { scrapeerYouTube?: Cache };
 const cache: Cache = (shared.scrapeerYouTube ??= new Map());
@@ -27,24 +30,33 @@ const transport = createHttpTransport({
 
 export type YouTubeAnswer = { match: YouTubeMatch | null } | { error: string };
 
+function remember(id: string, match: YouTubeMatch | null) {
+  if (cache.size >= CACHE_LIMIT) {
+    const oldest = cache.keys().next().value;
+    if (oldest !== undefined) cache.delete(oldest);
+  }
+  cache.set(id, match);
+}
+
 export async function GET(request: NextRequest) {
-  const params = request.nextUrl.searchParams;
-  const id = params.get('id') ?? '';
-  const title = params.get('title') ?? '';
-  if (id === '' || title === '') {
-    return NextResponse.json<YouTubeAnswer>({ error: 'id and title are required.' }, { status: 400 });
+  const id = request.nextUrl.searchParams.get('id') ?? '';
+  const song = findSong(id);
+  if (song === null) {
+    return NextResponse.json<YouTubeAnswer>(
+      { error: 'That track is not in the library; load its album first.' },
+      { status: 404 }
+    );
   }
   const cached = cache.get(id);
   if (cached !== undefined) return NextResponse.json<YouTubeAnswer>({ match: cached });
 
-  const duration = Number(params.get('duration'));
   const found = await findYouTubeVideo(
-    { artist: params.get('artist') ?? '', title, durationSec: duration > 0 ? duration : null },
+    { artist: song.artist, title: song.name, durationSec: song.duration > 0 ? song.duration : null },
     { transport, logger: silentLogger, apiKey: process.env.SCRAPEER_YOUTUBE_API_KEY ?? '' }
   );
   if (!found.ok) {
     return NextResponse.json<YouTubeAnswer>({ error: found.error.message }, { status: 502 });
   }
-  cache.set(id, found.value);
+  remember(id, found.value);
   return NextResponse.json<YouTubeAnswer>({ match: found.value });
 }
