@@ -1,23 +1,29 @@
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { TrackTable } from './p/[id]/track-table';
-import { getAllSongs, searchSongs } from '@/lib/db/queries';
+import { getSongs } from '@/lib/library';
 import { Suspense } from 'react';
 
 async function Tracks({
   searchParams,
 }: {
-  searchParams: Promise<{ q: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const query = (await searchParams).q;
-  const songs = query ? await searchSongs(query) : await getAllSongs();
-  // @ts-ignore
-  return <TrackTable query={query} playlist={{ songs }} />;
+  const songs = await getSongs(query);
+  if (songs.length === 0 && !query) {
+    return (
+      <p className="px-4 py-6 text-xs text-gray-400">
+        Paste a MusicBrainz album or recording link in the sidebar to start.
+      </p>
+    );
+  }
+  return <TrackTable query={query} songs={songs} />;
 }
 
 export default function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ q: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#0A0A0A] pb-[69px] pt-2">

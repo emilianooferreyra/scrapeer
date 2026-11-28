@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import { NowPlaying } from './now-playing';
 import { PlaybackProvider } from './playback-context';
-import { getAllPlaylists } from '@/lib/db/queries';
+import { getPlaylists } from '@/lib/library';
 import { OptimisticPlaylists } from './optimistic-playlists';
 import { PlaylistProvider } from './hooks/use-playlist';
 import { PlaybackControls } from './playback-controls';
@@ -29,7 +29,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const playlistsPromise = getAllPlaylists();
+  const playlistsPromise = getPlaylists();
 
   return (
     <html lang="en" className={inter.className}>

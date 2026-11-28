@@ -27,7 +27,7 @@
   },
   "overrides": [
     {
-      "files": ["src/core/**"],
+      "files": ["packages/core/src/core/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -43,7 +43,7 @@
       }
     },
     {
-      "files": ["src/providers/**"],
+      "files": ["packages/core/src/providers/**"],
       "rules": {
         "no-restricted-imports": [
           "error",

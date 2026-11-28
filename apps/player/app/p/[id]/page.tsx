@@ -2,20 +2,19 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Shuffle } from 'lucide-react';
 import { TrackTable } from './track-table';
-import { getPlaylistWithSongs } from '@/lib/db/queries';
+import { getPlaylistWithSongs } from '@/lib/library';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { formatDuration } from '@/lib/utils';
 import { CoverImage } from './cover-image';
-import { EditableTitle } from './editable-title';
 
 export default async function PlaylistPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  let id = (await params).id;
-  let playlist = await getPlaylistWithSongs(id);
+  const id = (await params).id;
+  const playlist = await getPlaylistWithSongs(id);
 
   if (!playlist) {
     notFound();
@@ -49,18 +48,23 @@ export default async function PlaylistPage({
       </div>
 
       <div className="flex items-center py-3 px-4 space-x-3 bg-[#0A0A0A]">
-        <CoverImage url={playlist.coverUrl} playlistId={playlist.id} />
+        <CoverImage url={playlist.coverUrl} alt={playlist.name} />
         <div>
-          <EditableTitle playlistId={playlist.id} initialName={playlist.name} />
+          <h1 className="text-xl sm:text-2xl font-semibold text-white">{playlist.name}</h1>
+          {playlist.artist ? <p className="text-xs sm:text-sm text-gray-300">{playlist.artist}</p> : null}
           <p className="text-xs sm:text-sm text-gray-400">
-            {playlist.trackCount} tracks • {formatDuration(playlist.duration)}
+            {playlist.trackCount} {playlist.trackCount === 1 ? 'track' : 'tracks'} •{' '}
+            {formatDuration(playlist.duration)} •{' '}
+            <a href={playlist.sourceUrl} target="_blank" rel="noreferrer" className="underline hover:text-white">
+              MusicBrainz
+            </a>
           </p>
         </div>
       </div>
 
       <ScrollArea className="flex-1 mt-3">
         <div className="min-w-max">
-          <TrackTable playlist={playlist} />
+          <TrackTable songs={playlist.songs} />
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>

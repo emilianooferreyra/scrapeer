@@ -27,6 +27,8 @@ export const ApiRelease = z.object({
   title: z.string(),
   date: z.string().optional(),
   "artist-credit": ArtistCredit.optional(),
+  /** Whether the Cover Art Archive holds images for this release; no extra request needed. */
+  "cover-art-archive": z.object({ front: z.boolean() }).optional(),
   media: z.array(z.object({ "track-count": z.number(), tracks: z.array(ApiTrack).optional() })),
 });
 export type ApiRelease = z.infer<typeof ApiRelease>;

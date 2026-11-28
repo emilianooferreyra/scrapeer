@@ -148,7 +148,7 @@ describe("musicbrainz provider", () => {
       license: null,
       collection: { id: IN_RAINBOWS, position: 1 },
       tags: [],
-      artworkUrl: null,
+      artworkUrl: `https://coverartarchive.org/release/${IN_RAINBOWS}/front-500`,
       downloadable: false,
       description: null,
       provenance: {
@@ -161,6 +161,24 @@ describe("musicbrainz provider", () => {
         providerVersion: "0.1.0",
       },
     });
+  });
+
+  it("leaves artworkUrl null when the Cover Art Archive has no front image", async () => {
+    const body = fixture("release-in-rainbows.json").replace('"front":true', '"front":false');
+    const value = await resolveOk(`https://musicbrainz.org/release/${IN_RAINBOWS}`, body);
+    if (value.kind !== "collection") throw new Error("expected a collection");
+    expect(new Set(value.page.items.map((track) => track.artworkUrl))).toStrictEqual(
+      new Set([null]),
+    );
+  });
+
+  it("gives a recording link no artwork: it has no release to take a cover from", async () => {
+    const value = await resolveOk(
+      `https://musicbrainz.org/recording/${ROLLING_STONE}`,
+      fixture("recording-several-isrcs.json"),
+    );
+    if (value.kind !== "track") throw new Error("expected a track");
+    expect(value.track.artworkUrl).toBeNull();
   });
 
   it("leaves publishedAt null for a partial release date and isrcs empty when none is known", async () => {
