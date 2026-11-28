@@ -23,6 +23,8 @@ export type Playlist = {
 };
 
 export type PlaylistWithSongs = Playlist & {
+  /** Set when the source has more pages than were fetched: the export is partial. */
+  notice: string | null;
   songs: Song[];
   trackCount: number;
   duration: number;

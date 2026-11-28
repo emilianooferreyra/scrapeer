@@ -1,12 +1,23 @@
 import { connection } from 'next/server';
-import { createScrapeer, type Resource, type Scrapeer, type Track } from '@scrapeer/core';
+import {
+  exportResource,
+  type ExportFile,
+  type ExportFormat,
+  createScrapeer,
+  describeError,
+  partialNotice,
+  type Resource,
+  type Scrapeer,
+  type Track,
+} from '@scrapeer/core';
 import type { Playlist, PlaylistWithSongs, Song } from './types';
 
 /**
  * The library is the set of links resolved in this server session, kept in memory.
  * Nothing is stored on disk yet: storage is still to be decided (no Postgres).
  */
-type Library = Map<string, PlaylistWithSongs>;
+type Entry = { playlist: PlaylistWithSongs; resource: Resource };
+type Library = Map<string, Entry>;
 const shared = globalThis as typeof globalThis & {
   scrapeerLibrary?: Library;
   scrapeerService?: Scrapeer;
@@ -44,6 +55,7 @@ function toPlaylist(resource: Resource): PlaylistWithSongs {
       kind: 'album',
       coverUrl: songs[0]?.imageUrl ?? null,
       sourceUrl: collection.url,
+      notice: partialNotice(resource),
       songs,
       trackCount: songs.length,
       duration: songs.reduce((total, song) => total + song.duration, 0),
@@ -57,6 +69,7 @@ function toPlaylist(resource: Resource): PlaylistWithSongs {
     kind: 'track',
     coverUrl: null,
     sourceUrl: resource.track.url,
+    notice: null,
     songs: [song],
     trackCount: 1,
     duration: song.duration,
@@ -68,25 +81,35 @@ export type ResolveOutcome = { ok: true; id: string } | { ok: false; message: st
 /** Resolves a pasted link through scrapeer and adds it to the library. */
 export async function resolveLink(input: string): Promise<ResolveOutcome> {
   const result = await scrapeer.resolve(input);
-  if (!result.ok) return { ok: false, message: result.error.message };
+  // The same line the CLI prints, so a failure reads the same on both surfaces.
+  if (!result.ok) return { ok: false, message: describeError(result.error) };
   const playlist = toPlaylist(result.value);
-  library.set(playlist.id, playlist);
+  // The resource is kept too: exports come from it, not from the rows the player shows.
+  library.set(playlist.id, { playlist, resource: result.value });
   return { ok: true, id: playlist.id };
 }
 
 export async function getPlaylists(): Promise<Playlist[]> {
   await connection();
-  return [...library.values()].reverse().map(({ songs, trackCount, duration, ...playlist }) => playlist);
+  return [...library.values()]
+    .reverse()
+    .map(({ playlist: { songs, trackCount, duration, notice, ...playlist } }) => playlist);
 }
 
 export async function getPlaylistWithSongs(id: string): Promise<PlaylistWithSongs | null> {
   await connection();
-  return library.get(id) ?? null;
+  return library.get(id)?.playlist ?? null;
+}
+
+/** The same file `scrapeer resolve --format` saves, for a link already in the library. */
+export function getExport(id: string, format: ExportFormat): ExportFile | null {
+  const entry = library.get(id);
+  return entry ? exportResource(entry.resource, format) : null;
 }
 
 export async function getSongs(query?: string): Promise<Song[]> {
   await connection();
-  const songs = [...library.values()].reverse().flatMap((playlist) => playlist.songs);
+  const songs = [...library.values()].reverse().flatMap(({ playlist }) => playlist.songs);
   const needle = query?.trim().toLowerCase();
   if (!needle) return songs;
   return songs.filter((song) =>
@@ -96,7 +119,7 @@ export async function getSongs(query?: string): Promise<Song[]> {
 
 /** A song already in the library; the YouTube search only runs for these. */
 export function findSong(id: string): Song | null {
-  for (const playlist of library.values()) {
+  for (const { playlist } of library.values()) {
     const song = playlist.songs.find((candidate) => candidate.id === id);
     if (song) return song;
   }

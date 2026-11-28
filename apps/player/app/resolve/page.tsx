@@ -15,7 +15,7 @@ export default async function ResolvePage({
   return (
     <div className="flex-1 flex flex-col bg-[#0A0A0A] p-6 pb-[69px] text-sm">
       <h1 className="mb-2 font-semibold text-gray-200">Could not load that link</h1>
-      <p className="text-red-400">{result.message}</p>
+      <p className="font-mono text-red-400 break-words">{result.message}</p>
       {url ? <p className="mt-2 text-xs text-gray-500 break-all">{url}</p> : null}
     </div>
   );

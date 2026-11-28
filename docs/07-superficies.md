@@ -115,6 +115,8 @@ Ese es el post. No "mirá mi scraper": **"tu agente lee cualquier playlist y te 
 ## UI
 
 > **v1.0, local.** `scrapeer ui` levanta un servidor en `127.0.0.1` y abre el navegador. Es el demo principal del proyecto (ADR-021).
+>
+> **Hoy (ADR-027):** la UI es el player de `apps/player` (`pnpm dev`, solo `127.0.0.1`). `[ CSV ]` y `[ JSON ]` bajan `GET /p/<id>/export?format=csv|json`: el mismo archivo y el mismo nombre que guarda `scrapeer resolve`.
 
 ### Decisión: _form-first_, no chat
 

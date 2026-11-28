@@ -43,3 +43,16 @@ const RETRYABLE: ReadonlySet<ScrapeErrorKind> = new Set<ScrapeErrorKind>([
 export function isRetryable(kind: ScrapeErrorKind): boolean {
   return RETRYABLE.has(kind);
 }
+
+/**
+ * One line a person or an LLM can act on, e.g. "rate_limited: ... provider=x retryAfter=12s".
+ * Every surface prints errors with it, so the CLI and the UI read the same (docs/10-roadmap.md).
+ */
+export function describeError(error: ScrapeError): string {
+  const details = [
+    error.provider === undefined ? null : `provider=${error.provider}`,
+    error.retryAfterSec === undefined ? null : `retryAfter=${error.retryAfterSec}s`,
+    error.url === undefined ? null : `url=${error.url}`,
+  ].filter((detail) => detail !== null);
+  return [`${error.kind}: ${error.message}`, ...details].join(" ");
+}

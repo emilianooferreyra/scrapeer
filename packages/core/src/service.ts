@@ -9,8 +9,17 @@ import { musicbrainz } from "./providers/musicbrainz/provider";
 
 /** What adapters need besides `resolve`: they import only from the service (AGENTS.md). */
 export { resourceToCsv } from "./formats/csv";
+export {
+  attachmentHeader,
+  EXPORT_FORMATS,
+  exportResource,
+  isExportFormat,
+  partialNotice,
+  type ExportFile,
+  type ExportFormat,
+} from "./formats/export";
 export type { Resource } from "./core/schema";
-export type { ScrapeError } from "./core/errors";
+export { describeError, type ScrapeError } from "./core/errors";
 
 /** Identifies scrapeer and a contact on every request (ADR-017); never a browser string. */
 export const USER_AGENT = "scrapeer/0.0.0 ( https://github.com/emilianooferreyra/scrapeer )";

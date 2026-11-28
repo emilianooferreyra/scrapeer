@@ -2,6 +2,15 @@ export const TOOL_NAME = "scrapeer";
 
 export { CSV_COLUMNS, resourceToCsv } from "./formats/csv";
 export {
+  attachmentHeader,
+  EXPORT_FORMATS,
+  exportResource,
+  isExportFormat,
+  partialNotice,
+  type ExportFile,
+  type ExportFormat,
+} from "./formats/export";
+export {
   createScrapeer,
   USER_AGENT,
   type ResolveOptions,
@@ -9,7 +18,7 @@ export {
   type ScrapeerOptions,
 } from "./service";
 
-export type { ScrapeError, ScrapeErrorKind } from "./core/errors";
+export { describeError, type ScrapeError, type ScrapeErrorKind } from "./core/errors";
 export type { Capability, Ctx, Provider, ProviderPolicy } from "./core/provider";
 export type { Result } from "./core/result";
 export type { Collection, Resource, Track } from "./core/schema";
