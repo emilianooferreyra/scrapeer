@@ -64,19 +64,25 @@ export class YouTubeMedia extends EventTarget {
   private pending: string | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private level = 1;
+  /** Bumped by every attach and detach: an attach that finishes late sees it changed and gives up. */
+  private generation = 0;
 
   /** Creates the player inside `container`; the API replaces the element it gets, so it gets a child. */
   async attach(container: HTMLElement): Promise<void> {
+    const generation = ++this.generation;
     const YT = await loadApi();
-    this.detach();
+    if (generation !== this.generation) return;
+    this.destroyPlayer();
     const target = document.createElement('div');
     container.appendChild(target);
-    this.player = new YT.Player(target, {
+    // Callbacks act only while this player is the current one; a destroyed player is ignored.
+    const player: YTPlayer = new YT.Player(target, {
       width: '100%',
       height: '100%',
       playerVars: { playsinline: 1, rel: 0 },
       events: {
         onReady: () => {
+          if (player !== this.player) return;
           this.ready = true;
           this.player?.setVolume(Math.round(this.level * 100));
           if (this.pending !== null) {
@@ -84,12 +90,20 @@ export class YouTubeMedia extends EventTarget {
             this.pending = null;
           }
         },
-        onStateChange: ({ data }) => this.onState(data, YT),
+        onStateChange: ({ data }) => {
+          if (player === this.player) this.onState(data, YT);
+        },
       },
     });
+    this.player = player;
   }
 
   detach(): void {
+    this.generation++;
+    this.destroyPlayer();
+  }
+
+  private destroyPlayer(): void {
     this.stopClock();
     this.player?.destroy();
     this.player = null;

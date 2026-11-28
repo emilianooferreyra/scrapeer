@@ -126,7 +126,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const [currentTrack, setCurrentTrack] = useState<Song | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  // `playlist` is the table on screen; `queue` is the list the playing track came from.
   const [playlist, setPlaylist] = useState<Song[]>([]);
+  const [queue, setQueue] = useState<Song[]>([]);
   const [trackStatus, setTrackStatus] = useState<TrackStatus>({ kind: 'idle' });
   const [media] = useState(() => new YouTubeMedia());
   const audioRef = useRef<YouTubeMedia | null>(media);
@@ -148,6 +150,8 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const playTrack = useCallback(
     (track: Song) => {
       const request = ++requestRef.current;
+      // Picking a track from the table makes that table the queue; next/previous keep the queue.
+      setQueue((current) => (playlist.some((song) => song.id === track.id) ? playlist : current));
       setCurrentTrack(track);
       setCurrentTime(0);
       setDuration(0);
@@ -155,13 +159,8 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       media.pause();
       setTrackStatus({ kind: 'searching' });
 
-      const params = new URLSearchParams({
-        id: track.id,
-        artist: track.artist,
-        title: track.name,
-        duration: String(track.duration),
-      });
-      fetch(`/api/youtube?${params}`)
+      // The server looks the song up in the library: only its id travels.
+      fetch(`/api/youtube?id=${encodeURIComponent(track.id)}`)
         .then((response) => response.json() as Promise<YouTubeAnswer>)
         .then((answer) => {
           if (request !== requestRef.current) return;
@@ -180,35 +179,33 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
           }
         });
     },
-    [setActivePanel, media]
+    [setActivePanel, media, playlist]
   );
 
   const playNextTrack = useCallback(() => {
-    if (currentTrack && playlist.length > 0) {
-      const currentIndex = playlist.findIndex(
-        (track) => track.id === currentTrack.id
-      );
-      const nextIndex = (currentIndex + 1) % playlist.length;
-      playTrack(playlist[nextIndex]);
+    if (currentTrack && queue.length > 0) {
+      const currentIndex = queue.findIndex((track) => track.id === currentTrack.id);
+      playTrack(queue[(currentIndex + 1) % queue.length]);
     }
-  }, [currentTrack, playlist, playTrack]);
+  }, [currentTrack, queue, playTrack]);
 
   const playPreviousTrack = useCallback(() => {
-    if (currentTrack && playlist.length > 0) {
-      const currentIndex = playlist.findIndex(
-        (track) => track.id === currentTrack.id
-      );
-      const previousIndex =
-        (currentIndex - 1 + playlist.length) % playlist.length;
-      playTrack(playlist[previousIndex]);
+    if (currentTrack && queue.length > 0) {
+      const currentIndex = queue.findIndex((track) => track.id === currentTrack.id);
+      playTrack(queue[(currentIndex - 1 + queue.length) % queue.length]);
     }
-  }, [currentTrack, playlist, playTrack]);
+  }, [currentTrack, queue, playTrack]);
+
+  /** At the end of a track, move on; a queue of one stops instead of repeating forever. */
+  const advanceAfterEnd = useCallback(() => {
+    if (queue.length > 1) playNextTrack();
+  }, [queue, playNextTrack]);
 
   // The player, not the buttons, says whether it is playing; a finished track moves on.
-  const playNextRef = useRef(playNextTrack);
+  const playNextRef = useRef(advanceAfterEnd);
   useEffect(() => {
-    playNextRef.current = playNextTrack;
-  }, [playNextTrack]);
+    playNextRef.current = advanceAfterEnd;
+  }, [advanceAfterEnd]);
   useEffect(() => {
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);

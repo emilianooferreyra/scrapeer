@@ -20,7 +20,9 @@ export function formatDuration(durationInSeconds: number) {
 
 export function highlightText(text: string, query: string | undefined) {
   if (!query) return text;
-  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  // The query is user text: escape it so characters like ( or [ match literally.
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
 
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
