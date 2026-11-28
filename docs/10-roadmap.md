@@ -7,7 +7,7 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 | Fase      | Resultado visible                                      | Sesiones  |
 | --------- | ------------------------------------------------------ | --------- |
 | 1         | Link de álbum de MusicBrainz → CSV, por CLI            | 2–3       |
-| 2         | La UI local: pegás el link, ves la tabla, exportás     | 2–3       |
+| 2         | El player: pegás el link, ves la tabla, exportás       | 2–3       |
 | 3         | YouTube con la clave del usuario; el schema se congela | 3–4       |
 | 4         | Runs que se cortan y se retoman; export con filtros    | 3–5       |
 | 5         | Un agente resuelve y exporta por MCP                   | 2–3       |
@@ -29,14 +29,16 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 **Done:** el link real de un álbum de MusicBrainz produce un CSV ordenado; `pnpm typecheck && pnpm test` en verde.
 **No incluye:** UI, ledger, búsqueda ni otro provider.
 
-## Fase 2 — UI local
+## Fase 2 — UI local (el player, ADR-027)
 
-- [ ] Capa de servicio extraída (segundo adaptador, ADR-007)
-- [ ] Adaptador HTTP local, solo `127.0.0.1`
-- [ ] `scrapeer ui`: input, tabla, export CSV y JSON ([`07-superficies.md`](07-superficies.md#ui))
+- [x] Capa de servicio extraída (segundo adaptador: el player, ADR-007)
+- [ ] El player escucha solo en `127.0.0.1`
+- [ ] Export CSV y JSON desde la página del álbum ([`07-superficies.md`](07-superficies.md#ui))
 - [ ] Errores visibles en la UI con el mismo texto que la CLI
 
 **Done:** alguien ajeno pega un link de MusicBrainz y descarga el CSV en menos de 60 s. Se graba el GIF.
+
+**Adelantado de la Fase 3 (ADR-027):** búsqueda en YouTube con la clave del usuario para reproducir en el player.
 
 ## Fase 3 — YouTube, ListenBrainz y congelamiento
 

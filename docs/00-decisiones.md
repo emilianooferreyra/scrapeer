@@ -32,6 +32,7 @@ Formato: `Estado · Contexto · Decisión · Consecuencias`.
 | ADR-024 | MusicBrainz y YouTube; `robots.txt` según el tipo de acceso | Aceptada                                             |
 | ADR-025 | ListenBrainz en v1.0: playlists y escuchas                  | Aceptada                                             |
 | ADR-026 | TheAudioDB, Discogs e iTunes después de v1.0                | Aceptada                                             |
+| ADR-027 | Monorepo; el player Next.js es la UI local de v1.0          | Aceptada                                             |
 
 ---
 
@@ -512,3 +513,28 @@ Audius se revisó en la misma fecha y queda **afuera**: sus términos de la API 
 - Dos puntos son interpretación, no texto literal: que un CSV local cuente como "lo necesario" para Discogs, y que la prohibición de IA de Tidal alcance a la superficie MCP. Se reconfirman en la puerta de cada provider.
 - Los volcados mensuales de Discogs son CC0 sin las condiciones de la API: quedan como alternativa a evaluar en su puerta.
 - Queda pendiente escribirle a 1001Tracklists para pedir acceso.
+
+---
+
+## ADR-027 — Monorepo; el player Next.js es la UI local de v1.0
+
+**Fecha.** 2026-11-28. **Supera parcialmente a** ADR-021 (`scrapeer ui`) y ADR-023 (un solo paquete, Hono + Vite para la UI, `commander`).
+
+**Contexto.** Con la Fase 1 andando, el usuario quiso que la UI fuera un reproductor dentro de scrapeer, al estilo de Explo: pegás un link, ves el álbum y lo escuchás. Se eligió Next.js (no TanStack Start) y se importó [leerob/next-music-player](https://github.com/leerob/next-music-player) como base. Se descartaron Postgres, Docker y Vercel Blob mientras no haga falta guardar nada. Para escuchar, MusicBrainz no da audio; se adelantó de la Fase 3 la búsqueda en YouTube con la clave del usuario.
+
+**Decisión.**
+
+- **Monorepo pnpm:** `packages/core` (`@scrapeer/core`: transport, providers, schema, capa de servicio, CLI) y `apps/player` (`@scrapeer/player`).
+- **La UI local de v1.0 es el player** (`pnpm dev`), no `scrapeer ui` con Hono + Vite. Escucha solo en `127.0.0.1`, como pedía ADR-021.
+- **El player usa la capa de servicio** (`createScrapeer`), igual que la CLI: mismos errores, mismo reintento, mismo rate limit.
+- **La biblioteca vive en memoria** del servidor; se pierde al reiniciar. El almacenamiento se decide cuando haga falta (ledger de la Fase 4).
+- **Reproducción:** el reproductor IFrame oficial de YouTube, con el video visible como exige YouTube. scrapeer no extrae ni guarda audio. Solo-audio queda para después, con otra fuente.
+- **Estilos:** Tailwind y shadcn/ui vienen del import; se reemplazan por módulos SCSS y Radix sin estilos de a poco.
+- **CLI:** `node:util` `parseArgs` mientras haya un solo comando; `commander` cuando haya varios.
+
+**Consecuencias.**
+
+- La Fase 2 deja de construir una UI nueva: el player suma el export CSV/JSON y muestra los errores con el mismo texto que la CLI.
+- La regla "nada de la fase N+1 sin cerrar la N" se rompió a pedido del usuario: la búsqueda en YouTube (101 unidades de cuota por tema, de 10.000 diarias) ya existe antes de la Fase 3. El budget de cuota sigue siendo de la Fase 3.
+- El repo upstream del player no tiene archivo LICENSE; su autor lo anunció como open source (`apps/player/NOTICE.md`). Antes del release (Fase 6) hay que confirmar la licencia o terminar de reemplazar el código importado.
+- Un solo binario `scrapeer` con la UI adentro queda abierto para la Fase 6.
