@@ -23,7 +23,7 @@ Si un adaptador tiene lógica de negocio, está mal ubicado.
 ## CLI
 
 ```
-scrapeer resolve <url>              # URL → track o colección (--format json|csv)
+scrapeer resolve <url>              # URL → track o colección; guarda en exports/ (--format json|csv, --out <dir>, --stdout)
 scrapeer search <query> --provider  # búsqueda normalizada
 scrapeer export --run <runId>       # dataset (jsonl + csv), ver 06-dataset.md
 scrapeer providers                  # lista + capabilities

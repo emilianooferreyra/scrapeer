@@ -32,21 +32,76 @@ const resolved = await createScrapeer({
 if (!resolved.ok) throw new Error(resolved.error.message);
 const track = resolved.value;
 
-async function cli(argv: string[], answer: Result<Resource, ScrapeError> = ok(track)) {
+async function cli(
+  argv: string[],
+  answer: Result<Resource, ScrapeError> = ok(track),
+  writeFile: (path: string, text: string) => Promise<void> = async () => undefined,
+) {
   const resolve = vi.fn<Scrapeer["resolve"]>(async () => answer);
+  const write = vi.fn<(path: string, text: string) => Promise<void>>(writeFile);
   let stdout = "";
   let stderr = "";
   const code = await run(
     argv,
-    { stdout: (text) => void (stdout += text), stderr: (text) => void (stderr += text) },
+    {
+      stdout: (text) => void (stdout += text),
+      stderr: (text) => void (stderr += text),
+      writeFile: write,
+    },
     { resolve },
   );
-  return { code, stdout, stderr, resolve };
+  return { code, stdout, stderr, resolve, writes: write.mock.calls };
 }
 
+const SAVED = "exports/Bob Dylan - Like a Rolling Stone (26244520)";
+
 describe("scrapeer CLI", () => {
-  it("resolve <url> prints the resource as JSON and exits 0", async () => {
+  it("resolve <url> saves the JSON in exports/ by default and says where", async () => {
     const out = await cli(["resolve", LINK]);
+    expect(out).toMatchObject({ code: 0, stderr: "", stdout: `Saved ${SAVED}.json\n` });
+    expect(out.writes).toStrictEqual([[`${SAVED}.json`, `${JSON.stringify(track, null, 2)}\n`]]);
+    expect(out.resolve.mock.calls).toStrictEqual([[LINK]]);
+  });
+
+  it("--format csv saves the CSV view in exports/", async () => {
+    const out = await cli(["resolve", LINK, "--format", "csv"]);
+    expect(out).toMatchObject({ code: 0, stderr: "", stdout: `Saved ${SAVED}.csv\n` });
+    expect(out.writes).toStrictEqual([[`${SAVED}.csv`, resourceToCsv(track)]]);
+  });
+
+  it("--out <dir> saves in that folder instead", async () => {
+    const out = await cli(["resolve", LINK, "--format", "csv", "--out", "data/albums"]);
+    const path = "data/albums/Bob Dylan - Like a Rolling Stone (26244520).csv";
+    expect(out).toMatchObject({ code: 0, stdout: `Saved ${path}\n` });
+    expect(out.writes.map(([written]) => written)).toStrictEqual([path]);
+  });
+
+  it("keeps the file name safe: no path separators or reserved characters", async () => {
+    if (track.kind !== "track") throw new Error("track");
+    const odd: Resource = {
+      kind: "track",
+      track: { ...track.track, artist: "AC/DC", title: '../What? "Now": <Yes>|*' },
+    };
+    const out = await cli(["resolve", LINK], ok(odd));
+    expect(out.writes.map(([written]) => written)).toStrictEqual([
+      "exports/AC_DC - .._What_ _Now__ _Yes___ (26244520).json",
+    ]);
+  });
+
+  it("reports a file it cannot write as one line and exits 1", async () => {
+    const out = await cli(["resolve", LINK], ok(track), async () => {
+      throw Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" });
+    });
+    expect(out).toMatchObject({
+      code: 1,
+      stdout: "",
+      stderr: `scrapeer: could not write ${SAVED}.json (EACCES)\n`,
+    });
+  });
+
+  it("--stdout prints the JSON instead of saving it", async () => {
+    const out = await cli(["resolve", LINK, "--stdout"]);
+    expect(out.writes).toStrictEqual([]);
     expect(out.code).toBe(0);
     expect(out.stderr).toBe("");
     expect(Resource.parse(JSON.parse(out.stdout))).toStrictEqual(track);
@@ -55,14 +110,16 @@ describe("scrapeer CLI", () => {
   });
 
   it("accepts --format json explicitly", async () => {
-    const out = await cli(["resolve", LINK, "--format", "json"]);
+    const out = await cli(["resolve", LINK, "--format", "json", "--stdout"]);
     expect(out.code).toBe(0);
-    expect(JSON.parse(out.stdout)).toStrictEqual(JSON.parse((await cli(["resolve", LINK])).stdout));
+    expect(JSON.parse(out.stdout)).toStrictEqual(
+      JSON.parse((await cli(["resolve", LINK, "--stdout"])).stdout),
+    );
   });
 
-  it("resolve <url> --format csv prints the CSV view and exits 0", async () => {
-    const out = await cli(["resolve", LINK, "--format", "csv"]);
-    expect(out).toMatchObject({ code: 0, stderr: "", stdout: resourceToCsv(track) });
+  it("--format csv --stdout prints the CSV view instead of saving it", async () => {
+    const out = await cli(["resolve", LINK, "--format", "csv", "--stdout"]);
+    expect(out).toMatchObject({ code: 0, stderr: "", stdout: resourceToCsv(track), writes: [] });
     expect(out.stdout.startsWith("schemaVersion,provider,id,url,")).toBe(true);
   });
 
@@ -115,7 +172,11 @@ describe("scrapeer CLI", () => {
     let stderr = "";
     const code = await run(
       ["resolve", LINK],
-      { stdout: (text) => void (stdout += text), stderr: (text) => void (stderr += text) },
+      {
+        stdout: (text) => void (stdout += text),
+        stderr: (text) => void (stderr += text),
+        writeFile: async () => undefined,
+      },
       { resolve: () => Promise.reject(new Error("boom")) },
     );
     expect({ code, stdout, stderr }).toStrictEqual({
@@ -139,6 +200,7 @@ describe("scrapeer CLI", () => {
     [["search", "creep"], 'unknown command "search"'],
     [["resolve", LINK, "--format", "xml"], 'unknown format "xml"'],
     [["resolve", LINK, "--nope"], "--nope"],
+    [["resolve", LINK, "--stdout", "--out", "x"], "--out and --stdout"],
   ])("%j is a usage error: exit 2, usage on stderr, no lookup", async (argv, problem) => {
     const out = await cli(argv);
     expect(out.code).toBe(2);
