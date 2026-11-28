@@ -10,6 +10,7 @@ coverage/
 
 # Run outputs and ledger
 .scrapeer/
+exports/
 *.sqlite
 *.sqlite-*
 

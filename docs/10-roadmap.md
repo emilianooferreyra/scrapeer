@@ -24,7 +24,7 @@ Una sesión ≈ 3–5 h. Los rangos son estimaciones, no compromisos.
 - [x] Transport HTTP: allowlist por salto, timeout, rate limit y jitter, `robots.txt` antes del primer request según el tipo de acceso (ADR-024)
 - [x] MusicBrainz `resolve` de recording y release, con fixtures
 - [x] CLI `resolve <url>` → JSON (`pnpm scrapeer resolve <url>`)
-- [ ] `resolve --format csv` con el orden del álbum (el `export` con filtros llega en Fase 4)
+- [x] `resolve --format csv` con el orden del álbum (el `export` con filtros llega en Fase 4)
 
 **Done:** el link real de un álbum de MusicBrainz produce un CSV ordenado; `pnpm typecheck && pnpm test` en verde.
 **No incluye:** UI, ledger, búsqueda ni otro provider.
